@@ -1,0 +1,19 @@
+<nav class="teal">
+  <div class="nav-wrapper">
+    <a href="{{url_for('farm.home')}}" class="brand-logo">Logo</a>
+    <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+    <ul class="right hide-on-med-and-down">
+      <li><a href="{{url_for('farm.admin', farm_name=session['farm_name'])}}">Dashboard</a></li>
+      <li><a href="{{url_for('farm.disp_users', farm_name=session['farm_name'])}}">Users</a></li>
+      <li><a href="{{url_for('farm.message', farm_name=session['farm_name'])}}">Communicate</a></li>
+      <li><a href="{{url_for('farm.signout')}}">Sign out</a></li>
+    </ul>
+  </div>
+</nav>
+
+<ul class="sidenav" id="mobile-demo">
+  <li><a href="{{url_for('farm.admin', farm_name=session['farm_name'])}}">Dashboard</a></li>
+  <li><a href="{{url_for('farm.disp_users', farm_name=session['farm_name'])}}">Users</a></li>
+  <li><a href="{{url_for('farm.message', farm_name=session['farm_name'])}}">Communicate</a></li>
+  <li><a href="{{url_for('farm.signout')}}">Sign out</a></li>
+</ul>

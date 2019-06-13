@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, request
+from flask import session
 from wtforms import Form, StringField, PasswordField, IntegerField, validators
 from wtforms.fields.html5 import EmailField
 from timsystem import app
@@ -86,12 +87,12 @@ def signin():
         farm_name = request.form.get('farm_name')
         username = request.form.get('username')
         level = request.form.get('level')
-        app.logger.info(level)
+        session['farm_name'] = farm_name
 
         if level == 'admin':
-            return redirect(url_for('farm.admin'))
+            return redirect(url_for('farm.admin', farm_name=farm_name))
         else:
-            return redirect(url_for('farm.user_dashboard'))
+            return redirect(url_for('farm.user_dashboard', farm_name=farm_name))
     return render_template('signin.html')
 
 
@@ -99,52 +100,52 @@ def signin():
 Administrator routes
 """
 # Dashboard
-@farm.route('/admin-dashboard')
-def admin():
+@farm.route('/<farm_name>/admin-dashboard')
+def admin(farm_name):
     return render_template('admin_dashboard.html')
 
 # Display the house
-@farm.route('/house/<house_name>')
-def disp_house(house_name):
+@farm.route('/<farm_name>/house/<house_name>')
+def disp_house(farm_name, house_name):
     return render_template('disp_house.html')
 
 # Add a house
-@farm.route('/add/house', methods=['POST', 'GET'])
-def add_house():
+@farm.route('/<farm_name>/add/house', methods=['POST', 'GET'])
+def add_house(farm_name):
     return render_template('add_house.html')
 
 # Display a crop
-@farm.route('/crop/<house_name>/<crop_no>')
-def disp_crop(house_name, crop_no):
+@farm.route('/<farm_name>/crop/<house_name>/<crop_no>')
+def disp_crop(farm_name, house_name, crop_no):
     return render_template('disp_crop.html')
 
 # Add a crop
-@farm.route('/add/crop/<house_name>', methods=['GET', 'POST'])
-def add_crop(house_name):
+@farm.route('/<farm_name>/add/crop/<house_name>', methods=['GET', 'POST'])
+def add_crop(farm_name, house_name):
     return render_template('add_crop.html')
 
 
 # View Users
-@farm.route('/view-users')
-def disp_users():
+@farm.route('/<farm_name>/view-users')
+def disp_users(farm_name):
     return render_template('disp_users.html')
 
 
 # Register User
-@farm.route('/register-user', methods=['POST', 'GET'])
-def reg_user():
+@farm.route('/<farm_name>/register-user', methods=['POST', 'GET'])
+def reg_user(farm_name):
     return render_template('register_user.html')
 
 
 # Delete User
-@farm.route('/delete-user/<username>')
-def del_users(username):
+@farm.route('/<farm_name>/delete-user/<username>')
+def del_users(farm_name, username):
     return redirect(url_for('farm.disp_users'))
 
 
 # Messaging
-@farm.route('/message')
-def message():
+@farm.route('/<farm_name>/message')
+def message(farm_name):
     return render_template('messaging.html')
 
 
@@ -152,17 +153,19 @@ def message():
 User Routes
 """
 # Dashboard
-@farm.route('/user-dashboard')
-def user_dashboard():
+@farm.route('/<farm_name>/user-dashboard')
+def user_dashboard(farm_name):
     return render_template('user_dashboard.html')
 
 # Update records
-@farm.route('/record', methods=['POST', 'GET'])
-def record():
+@farm.route('/<farm_name>/record', methods=['POST', 'GET'])
+def record(farm_name):
     return render_template('record.html')
 
 
 # Sign out route
 @farm.route('/signout')
 def signout():
+    session.clear()
+    # flash Signed out
     return redirect(url_for('farm.home'))
