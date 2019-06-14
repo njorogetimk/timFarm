@@ -99,30 +99,71 @@ def signin():
 """
 Administrator routes
 """
+
+class HouseName(Form):
+    house_name = StringField('Name of the new house', [
+        validators.DataRequired(),
+        validators.length(min=3, max=10)
+    ])
 # Dashboard
 @farm.route('/<farm_name>/admin-dashboard')
 def admin(farm_name):
-    return render_template('admin_dashboard.html')
+    form = HouseName(request.form)
+    # Get the houses belonging to the farm
+    # You should be able to determine which are active and dormant
+    return render_template('admin_dashboard.html', form=form)
 
 # Display the house
-@farm.route('/<farm_name>/house/<house_name>')
+@farm.route('/<farm_name>/<house_name>/house')
 def disp_house(farm_name, house_name):
+    # Query the number of crops present
+    # The crops should have an active or archived status
     return render_template('disp_house.html')
 
 # Add a house
 @farm.route('/<farm_name>/add/house', methods=['POST', 'GET'])
 def add_house(farm_name):
-    return render_template('add_house.html')
+    form = HouseName(request.form)
+    if request.method == 'POST' and form.validate():
+        house_name = form.house_name.data
+        # save the data
+        # Flash new house created
+        return redirect(url_for('farm.admin', farm_name=farm_name))
+    # Flash error
+    return redirect(url_for('farm.admin', farm_name=farm_name))
 
 # Display a crop
-@farm.route('/<farm_name>/crop/<house_name>/<crop_no>')
+@farm.route('/<farm_name>/<house_name>/crop/<crop_no>')
 def disp_crop(farm_name, house_name, crop_no):
+    # Query the crop number
+    
     return render_template('disp_crop.html')
 
+
+class CropForm(Form):
+    crop_name = StringField('The name of the crop', [
+        validators.DataRequired(),
+        validators.length(min=3, max=10)
+    ])
+    crop_no = StringField('The Crop Number', [
+        validators.DataRequired(),
+        validators.length(min=1, max=10)
+    ])
+    start_date = StringField('Select the start date', [
+        validators.DataRequired()
+    ])
 # Add a crop
-@farm.route('/<farm_name>/add/crop/<house_name>', methods=['GET', 'POST'])
+@farm.route('/<farm_name>/<house_name>/add/crop', methods=['GET', 'POST'])
 def add_crop(farm_name, house_name):
-    return render_template('add_crop.html')
+    form = CropForm(request.form)
+    if request.method == 'POST' and form.validate():
+        crop_name = form.crop_name.data
+        crop_no = form.crop_no.data
+        start_date = form.start_date.data
+        # Get the data and update it
+        # Get started on the new crop
+        return redirect(url_for('farm.disp_crop', farm_name=farm_name, house_name=house_name, crop_no=crop_no))
+    return render_template('add_crop.html', form=form)
 
 
 # View Users
