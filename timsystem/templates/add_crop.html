@@ -1,0 +1,28 @@
+{% extends 'admin_base.html' %}
+
+{% block content %}
+{% from 'includes/_formhelpers.html' import render_field %}
+  <section class="section">
+    <div class="container">
+      <h4>Add a new crop</h4>
+      <div class="row">
+        <form method="POST" action="" class="col s12">
+          <div class="row">
+            <div class="input-field col s12 m6">
+              {{render_field(form.crop_name, class_="validate")}}
+            </div>
+            <div class="input-field col s12 m6">
+              {{render_field(form.crop_no, class_="validate")}}
+            </div>
+            <div class="input-field col s12 m6">
+              {{render_field(form.start_date, class_="datepicker")}}
+            </div>
+          </div>
+          <div class="col s12">
+          <button class="btn waves-effect waves-light" type="submit">Get Started <i class="material-icons right">send</i></button>
+        </div>
+        </form>
+      </div>
+    </div>
+  </section>
+{% endblock %}

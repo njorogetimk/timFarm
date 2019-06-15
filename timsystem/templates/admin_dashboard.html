@@ -1,0 +1,138 @@
+{% extends 'admin_base.html' %}
+
+{% block content %}
+{% from 'includes/_formhelpers.html' import render_field %}
+  <section class="section">
+    <div class="container teal darken-1 white-text">
+      <h4>Houses</h4>
+      <div class="row teal lighten-2">
+        <h5>Active houses</h5>
+        <p>The active houses are listed below</p>
+        <ul class="collapsible black-text">
+          <li class="col s12 m4">
+            <div class="collapsible-header">Alpha</div>
+            <div class="collapsible-body">
+              <div class="row">
+                <div class="col 12">
+                  <img src="{{url_for('static', filename='images/mock/mock.jpg')}}" alt="House profile" height="100">
+                </div>
+                <div class="col s12">
+                  <p>current crop</p>
+                </div>
+                <div class="col s12">
+                  <a href="{{url_for('farm.disp_house', farm_name=session['farm_name'], house_name='Alpha')}}" class="btn">Explore</a>
+                </div>
+              </div>
+            </div>
+          </li>
+          <li class="col s12 m4">
+            <div class="collapsible-header">Beta</div>
+            <div class="collapsible-body">
+              <div class="row">
+                <div class="col 12">
+                  <img src="{{url_for('static', filename='images/mock/mock.jpg')}}" alt="House profile" height="100">
+                </div>
+                <div class="col s12">
+                  <p>current crop</p>
+                </div>
+                <div class="col s12">
+                  <a href="{{url_for('farm.disp_house', farm_name=session['farm_name'], house_name='Beta')}}" class="btn">Explore</a>
+                </div>
+              </div>
+            </div>
+          </li>
+          <li class="col s12 m4">
+            <div class="collapsible-header">Gamma</div>
+            <div class="collapsible-body">
+              <div class="row">
+                <div class="col 12">
+                  <img src="{{url_for('static', filename='images/mock/mock.jpg')}}" alt="House profile" height="100">
+                </div>
+                <div class="col s12">
+                  <p>current crop</p>
+                </div>
+                <div class="col s12">
+                  <a href="{{url_for('farm.disp_house', farm_name=session['farm_name'], house_name='Gamma')}}" class="btn">Explore</a>
+                </div>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div class="row z-depth-3 teal lighten-3">
+        <h5>Add a new house</h5>
+        <form action="{{url_for('farm.add_house', farm_name=session['farm_name'])}}" method="post">
+          <div class="row white-text">
+            <div class="input-field col s12 m4">
+              {{render_field(form.house_name, class_="validate")}}
+            </div>
+            <div class="col s12 m4">
+              <button type="submit" name="action" class="btn">Submit</button>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="row teal lighten-2">
+        <h5>Dormant houses</h5>
+        <p>These are your archive houses</p>
+        <ul class="collapsible black-text">
+          <li class="col s12 m4">
+            <div class="collapsible-header">Alpha</div>
+            <div class="collapsible-body">
+              <div class="row">
+                <div class="col 12">
+                  <img src="{{url_for('static', filename='images/mock/mock.jpg')}}" alt="House profile" height="100">
+                </div>
+                <div class="col s12">
+                  <p>current crop</p>
+                </div>
+                <div class="col s12">
+                  <a href="" class="btn">Explore</a>
+                </div>
+              </div>
+            </div>
+          </li>
+          <li class="col s12 m4">
+            <div class="collapsible-header">Beta</div>
+            <div class="collapsible-body">
+              <div class="row">
+                <div class="col 12">
+                  <img src="{{url_for('static', filename='images/mock/mock.jpg')}}" alt="House profile" height="100">
+                </div>
+                <div class="col s12">
+                  <p>current crop</p>
+                </div>
+                <div class="col s12">
+                  <a href="" class="btn">Explore</a>
+                </div>
+              </div>
+            </div>
+          </li>
+          <li class="col s12 m4">
+            <div class="collapsible-header">Gamma</div>
+            <div class="collapsible-body">
+              <div class="row">
+                <div class="col 12">
+                  <img src="{{url_for('static', filename='images/mock/mock.jpg')}}" alt="House profile" height="100">
+                </div>
+                <div class="col s12">
+                  <p>current crop</p>
+                </div>
+                <div class="col s12">
+                  <a href="" class="btn">Explore</a>
+                </div>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section teal darken-2">
+    <div class="container">
+      <h4 class="white-text">Your Farm Calender</h4>
+      <p class="white-text">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Officiis laudantium vel molestias aliquid ipsa neque libero quibusdam, velit maxime expedita?</p>
+    </div>
+  </section>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <section class="section">
+    <div class="container">
+      <h4>Administrator Registration</h4>
+      {% from 'includes/_formhelpers.html' import render_field %}
+      <div class="row">
+        <form method="POST" action="" class="col s12">
+          <div class="row">
+            <div class="input-field col s12 m6">
+              {{render_field(form.admin_name, class_="validate")}}
+            </div>
+            <div class="input-field col s12 m6">
+              {{render_field(form.username, class_="validate")}}
+            </div>
+            <div class="input-field col s12 m6">
+              {{render_field(form.admin_email, class_="validate")}}
+            </div>
+            <div class="input-field col s12 m6">
+              {{render_field(form.phone_no, class_="validate")}}
+            </div>
+            <div class="input-field col s12">
+              {{render_field(form.password, class_="validate")}}
+            </div>
+            <div class="input-field col s12">
+              {{render_field(form.confirm, class_="validate")}}
+            </div>
+          </div>
+          <div class="col s12">
+          <button class="btn waves-effect waves-light" type="submit">Submit <i class="material-icons right">send</i></button>
+        </div>
+        </form>
+      </div>
+    </div>
+  </section>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <section class="section">
+    <div class="container">
+      <h4>Sign In</h4>
+      <div class="row">
+        <form class="col s12" id="signin" method="post">
+          <div class="row">
+            <div class="input-field col s12 m6">
+              <input type="text" name="farm_name" id="farm_name" class="validate">
+              <label for="farm_name">The farm name</label>
+            </div>
+            <div class="input-field col s12 m6">
+              <input type="text" name="username" id="username" class="validate">
+              <label for="username">Username</label>
+            </div>
+            <div class="input-field col s12 m6">
+              <select name="level" form="signin">
+                <option value="" disabled selected>Select your assignment</option>
+                <option value="admin" id="admin">Administrator</option>
+                <option value="user" id="user">User</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn" type="submit">Sign in</button>
+          <a href="{{url_for('farm.registerFarm')}}" class="btn">Register a new farm</a>
+        </form>
+
+      </div>
+    </div>
+  </section>
+{% endblock %}
