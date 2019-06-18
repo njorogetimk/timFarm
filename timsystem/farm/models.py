@@ -103,6 +103,7 @@ class Crop(db.Model):
         self.crop_no = crop_no
         self.start_date = start_date
         self.status = True
+        self.house = House.query.filter_by(house_name=house_name).first()
 
     def __repr__(self):
         return '<Crop {}, House {}>'.format(self.crop_no, self.house_name)
