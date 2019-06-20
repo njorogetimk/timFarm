@@ -1,8 +1,10 @@
 from flask import Blueprint, render_template, redirect, url_for, request
-from flask import session
+from flask import session, flash
 from wtforms import Form, StringField, PasswordField, IntegerField, validators
 from wtforms.fields.html5 import EmailField
-from timsystem import app
+from timsystem.farm.models import Farm, Users, House, Crop
+from timsystem.farm.models import Day, Activities, Harvest, Condition
+from timsystem import db, app
 
 
 farm = Blueprint('farm', __name__)
@@ -38,8 +40,18 @@ def registerFarm():
         farm_name = form.farm_name.data
         farm_email = form.farm_email.data
 
-        # flash new farm created
-        return redirect(url_for('farm.registerAdmin', farm_name=farm_name))
+        # Check if farm_name exists
+        farm = Farm.query.filter_by(farm_name=farm_name).first()
+        if not farm:
+            # The farm does not exist
+            newFarm = Farm(farm_name, farm_email)
+            db.session.add(newFarm)
+            db.session.commit()
+            flash('New farm %s created' % (farm_name), 'success')
+            return redirect(url_for('farm.registerAdmin', farm_name=farm_name))
+        else:
+            flash('The farm name %s taken' % farm_name, 'danger')
+            # return redirect(url_for('farm.registerFarm'))
     return render_template('register_farm.html', form=form)
 
 
@@ -56,9 +68,9 @@ class RegisterAdmin(Form):
         validators.DataRequired(),
         validators.Email()
     ])
-    phone_no = IntegerField('Phone Number', [
-        validators.DataRequired()
-    ])
+    # phone_no = IntegerField('Phone Number', [
+    #     validators.DataRequired()
+    # ])
     password = PasswordField('Password', [
             validators.DataRequired(),
             validators.EqualTo('confirm', message='Passwords do not match')
@@ -73,11 +85,29 @@ def registerAdmin(farm_name):
         admin_name = form.admin_name.data
         username = form.username.data
         admin_email = form.admin_email.data
-        phone_no = form.phone_no.data
+        # phone_no = form.phone_no.data
         password = form.password.data
 
-        # Flash you are now registered
-        return redirect(url_for('farm.signin'))
+        # Check if farm_name exists
+        farm = Farm.query.filter_by(farm_name=farm_name).first()
+        if not farm:
+            flash('The farm %s is not found' % farm_name, 'danger')
+            return render_template('register_admin.html', form=form)
+
+        # Check admin
+        user = farm.users.filter_by(username=username).first()
+        if not user:
+            # Register admin
+            newAdmin = Users(
+                admin_name, username, admin_email, password, farm_name, 'Admin'
+                )
+            db.session.add(newAdmin)
+            db.session.commit()
+            flash('Administrator Registered!', 'success')
+            return redirect(url_for('farm.signin'))
+        elif user.level == 'Admin':
+            flash('The admin is already registered', 'success')
+            return redirect(url_for('farm.signin'))
     return render_template('register_admin.html', form=form)
 
 
@@ -86,13 +116,31 @@ def signin():
     if request.method == 'POST':
         farm_name = request.form.get('farm_name')
         username = request.form.get('username')
-        level = request.form.get('level')
-        session['farm_name'] = farm_name
+        password = request.form.get('password')
 
-        if level == 'admin':
-            return redirect(url_for('farm.admin', farm_name=farm_name))
+        farm = Farm.query.filter_by(farm_name=farm_name).first()
+
+        if not farm:
+            flash('The farm %s is not registered' % farm_name, 'danger')
+            return render_template('signin.html')
+
+        user = farm.users.filter_by(username=username).first()
+        if not user:
+            flash('The username %s is not registered in the farm %s' % (
+                username, farm_name), 'danger')
+            return render_template('signin.html')
+
+        auth = user.authenticate(password)
+
+        if not auth:
+            flash('Wrong password', 'danger')
+            return render_template('signin.html')
         else:
-            return redirect(url_for('farm.user_dashboard', farm_name=farm_name))
+            session['farm_name'] = farm_name
+            if user.level == 'Admin':
+                return redirect(url_for('farm.admin', farm_name=farm_name))
+            else:
+                return redirect(url_for('farm.user_dashboard', farm_name=farm_name))
     return render_template('signin.html')
 
 
@@ -136,7 +184,7 @@ def add_house(farm_name):
 @farm.route('/<farm_name>/<house_name>/crop/<crop_no>')
 def disp_crop(farm_name, house_name, crop_no):
     # Query the crop number
-    
+
     return render_template('disp_crop.html')
 
 
