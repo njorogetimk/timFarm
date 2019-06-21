@@ -4,11 +4,14 @@
 {% block content %}
   <section class="section white-text">
     <div class="container teal darken-3">
-      <h4>House Name</h4>
+      <h4>House: {{house_name}}</h4>
       <div class="row">
         <div>
-          <h5>Active Crop: <a href="{{url_for('farm.disp_crop', farm_name=session['farm_name'], house_name='Alpha', crop_no='3-B1')}}" class="btn">3-B1</a></h5>
-          <a href="{{url_for('farm.add_crop', farm_name=session['farm_name'], house_name='Beta')}}" class="btn"><i class="material-icons">add</i> Add a new crop</a>
+          {% if active_crop %}
+            <h5>Active Crop: <a href="{{url_for('farm.disp_crop', farm_name=session['farm_name'], house_name=house_name, crop_no=active_crop.crop_no)}}" class="btn">{{active_crop.crop_no}}</a></h5>
+          {% else %}
+            <a href="{{url_for('farm.add_crop', farm_name=session['farm_name'], house_name=house_name)}}" class="btn"><i class="material-icons">add</i> Add a new crop</a>
+          {% endif %}
         </div>
         <div>
           <h5>Archive crops</h5>
@@ -22,20 +25,16 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>Button</td>
-                <td>1-B1</td>
-                <td>June, 13 2019</td>
-                <td>Sept, 10 2019</td>
-                <td><a href="" class="btn">Explore</a></td>
-              </tr>
-              <tr>
-                <td>Button</td>
-                <td>1-B1</td>
-                <td>June, 13 2019</td>
-                <td>Sept, 10 2019</td>
-                <td><a href="" class="btn">Explore</a></td>
-              </tr>
+              {% for crop in crops %}
+                {% if not crop.status %}
+                  <tr>
+                    <td>{{crop.crop_name}}</td>
+                    <td>{{crop.crop_no}}</td>
+                    <td>{{crop.start_date}}</td>
+                    <td>{{crop.end_date}}</td>
+                  </tr>
+                {% endif %}
+              {% endfor %}
             </tbody>
           </table>
         </div>

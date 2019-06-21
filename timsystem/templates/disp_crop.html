@@ -3,7 +3,108 @@
 {% block content %}
   <section class="section">
     <div class="container teal">
-      <h4>The crop name and number</h4>
+      <h4>The crop name: {{crop.crop_name}}</h4>
+      <h4>The crop number: {{crop.crop_no}}</h4>
+      <h5>
+        Start Date: {{crop.start_date}}
+        {% if crop.end_date %}
+          End Date: {{crop.end_date}}
+        {% endif %}
+      </h5>
     </div>
   </section>
+
+  <section class="section">
+    <div class="container teal">
+      <h5>Crop Activities</h5>
+      <hr>
+      <ul class="collapsible black-text">
+        {% for day in days %}
+          <li class="col s12 m3">
+            <div class="collapsible-header">{{day.day_no}}</div>
+            <div class="collapsible-body">
+              {% if daysdata[day.day_no]['activities'] %}
+                {{daysdata[day.day_no]['activities']}}
+              {% else %}
+                <p>Add activities</p>
+              {% endif %}
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container teal">
+      <h5>Crop Condition</h5>
+      <hr>
+      <ul class="collapsible black-text">
+        {% for day in days %}
+          <li class="col s12 m3">
+            <div class="collapsible-header">{{day.day_no}}</div>
+            <div class="collapsible-body">
+              {% if daysdata[day.day_no]['condition'] %}
+                {{daysdata[day.day_no]['condition']}}
+              {% else %}
+                <p>Add condition</p>
+              {% endif %}
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container teal">
+      <h5>Crop Harvests</h5>
+      <hr>
+      <ul class="collapsible black-text">
+        {% for day in days %}
+          <li class="col s12 m3">
+            <div class="collapsible-header">{{day.day_no}}</div>
+            <div class="collapsible-body">
+              {% if daysdata[day.day_no]['harvest'] %}
+                {{daysdata[day.day_no]['harvest']}}
+              {% else %}
+                <p>Add harvest</p>
+              {% endif %}
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container teal">
+      <h5>Start a new day</h5>
+      <form action="{{url_for('farm.add_day', farm_name=session['farm_name'], house_name=crop.house_name, crop_no=crop.crop_no)}}" method="post">
+        <div class="row">
+          <div class="input-field col s12 m6">
+            <input type="text" name="date" class="mydatepicker" id="date">
+            <label for="date">Select the date</label>
+          </div>
+          {% if day_status %}
+            {% set disabled = 'disabled' %}
+          {% else %}
+            {% set disabled = '' %}
+          {% endif %}
+          <div class="col s12 m6">
+            <button type="submit" name="action" class="{{disabled}} btn">Start</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </section>
+{% endblock %}
+
+{% block scripting %}
+  <script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+      var elems = document.querySelectorAll('.mydatepicker');
+      var instances = M.Datepicker.init(elems, {});
+    });
+  </script>
 {% endblock %}

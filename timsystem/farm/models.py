@@ -70,6 +70,7 @@ class House(db.Model):
     status = db.Column(db.Boolean)
     farm = db.relationship('Farm', backref=db.backref('house', lazy='dynamic'))
     farm_name = db.Column(db.String, db.ForeignKey('farm.farm_name'))
+    currentCrop = db.Column(db.String, nullable=True)
 
     def __init__(self, farm_name, house_name):
         self.house_name = house_name
@@ -92,6 +93,8 @@ class Crop(db.Model):
     crop_name = db.Column(db.String)
     crop_no = db.Column(db.String, unique=True)
     start_date = db.Column(db.String)
+    current_date = db.Column(db.String)
+    end_date = db.Column(db.String, nullable=True)
     status = db.Column(db.Boolean)
     house = db.relationship('House', backref=db.backref(
         'crop', lazy='dynamic'
@@ -102,8 +105,11 @@ class Crop(db.Model):
         self.crop_name = crop_name
         self.crop_no = crop_no
         self.start_date = start_date
+        self.current_date = start_date
         self.status = True
         self.house = House.query.filter_by(house_name=house_name).first()
+        self.house.status = True
+        self.house.currentCrop = self.crop_no
 
     def __repr__(self):
         return '<Crop {}, House {}>'.format(self.crop_no, self.house_name)
@@ -118,13 +124,24 @@ class Day(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     day_no = db.Column(db.String, unique=True)
     date = db.Column(db.String)
+    status = db.Column(db.Boolean)
     crop = db.relationship('Crop', backref=db.backref('day', lazy='dynamic'))
     crop_no = db.Column(db.String, db.ForeignKey('crop.crop_no'))
 
     def __init__(self, crop_no, day_no, date):
         self.date = date
         self.day_no = day_no
+        self.status = True
         self.crop = Crop.query.filter_by(crop_no=crop_no).first()
+        self.counter = 0
+        self.crop.current_date = date
+
+    def day_check(self):
+        # Check whether the days data is filled
+        # If true change the status to False
+        self.counter += 1
+        if self.counter == 3:
+            self.status = False
 
     def __repr__(self):
         return '<Day {}, CropNo {}>'.format(self.day_no, self.crop_no)
@@ -155,6 +172,7 @@ class Harvest(db.Model):
         self.user = Users.query.filter_by(username=chronicler).first()
         time = dt.now()
         self.record_time = time.ctime()
+        self.day.day_check()
 
     def __repr__(self):
         return '<Harvest, {} Day {}>'.format(self.punnets, self.day_no)
@@ -188,6 +206,7 @@ class Condition(db.Model):
         self.user = Users.query.filter_by(username=chronicler).first()
         time = dt.now()
         self.record_time = time.ctime()
+        self.day.day_check()
 
     def __repr__(self):
         return '<Condition: {}>'.format(self.day_no)
@@ -218,6 +237,7 @@ class Activities(db.Model):
         self.user = Users.query.filter_by(username=chronicler).first()
         time = dt.now()
         self.record_time = time.ctime()
+        self.day.day_check()
 
     def __repr__(self):
         return '<Activities {}>'.format(self.day_no)
