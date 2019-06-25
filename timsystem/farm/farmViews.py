@@ -141,8 +141,10 @@ def signin():
             session['farm_name'] = farm_name
             session['username'] = username
             if user.level == 'Admin':
+                session['Admin'] = True
                 return redirect(url_for('farm.admin', farm_name=farm_name))
             else:
+                session['Admin'] = False
                 return redirect(url_for(
                     'farm.user_dashboard', farm_name=farm_name))
     return render_template('signin.html')
@@ -317,23 +319,24 @@ def add_day(farm_name, house_name, crop_no):
         return redirect(url_for('farm.disp_house', farm_name=farm_name, house_name=house_name))
     date = request.form.get('date')
     daycheck = dayGiver.Dates(crop.start_date, date)
-    day_serial = str(daycheck.day_no())+'-'+crop.crop_no
+    day_no = str(daycheck.day_no())
+    day_serial = day_no+'-'+crop.crop_no
     get_day = crop.day.filter_by(day_serial=day_serial).first()
     if not get_day:
         day = Day(crop_no, day_serial, date)
         db.session.add(day)
         db.session.commit()
-        flash('New day %s created' % day_serial, 'success')
+        flash('Day %s of crop %s started' % (day_no, crop.crop_no), 'success')
         return redirect(url_for('farm.disp_crop', farm_name=farm_name, house_name=house_name, crop_no=crop_no))
     else:
-        flash('The day %s is present. Update its record' % day_serial, 'success')
+        flash('The day %s is present. Update its record' % day_no, 'success')
         return redirect(url_for('farm.disp_crop', farm_name=farm_name, house_name=house_name, crop_no=crop_no))
 
 
 class ActvForm(Form):
     description = TextAreaField("Fill in the day's activities", [
         validators.DataRequired(),
-        validators.length(min=5, max=100)
+        validators.length(min=5, max=600)
     ])
 
 
@@ -406,7 +409,7 @@ def record_activities(farm_name, house_name, crop_no, day_serial):
         activities = Activities(day.day_serial, description, session['username'])
         db.session.add(activities)
         db.session.commit()
-        flash('Success', 'success')
+        flash('Day %s activities updated' % day.day_no, 'success')
         return redirect(url_for('farm.disp_crop', farm_name=farm_name, house_name=house_name, crop_no=crop_no))
     return render_template('record_activities.html', form=form, crop=crop, day=day)
 
@@ -437,7 +440,7 @@ def record_condition(farm_name, house_name, crop_no, day_serial):
         condition = Condition(day.day_serial, temperature, humidity, time, session['username'])
         db.session.add(condition)
         db.session.commit()
-        flash('Success', 'success')
+        flash('Day %s condition updated' % day.day_no, 'success')
         return redirect(url_for('farm.disp_crop', farm_name=farm_name, house_name=house_name, crop_no=crop_no))
     return render_template('record_condition.html', form=form, crop=crop, day=day)
 
@@ -467,7 +470,7 @@ def record_harvest(farm_name, house_name, crop_no, day_serial):
         harvest = Harvest(day.day_serial, punnets, session['username'])
         db.session.add(harvest)
         db.session.commit()
-        flash('Success', 'success')
+        flash('Day %s harvest updated' % day.day_no, 'success')
         return redirect(url_for('farm.disp_crop', farm_name=farm_name, house_name=house_name, crop_no=crop_no))
     return render_template('record_harvest.html', form=form, crop=crop, day=day)
 
