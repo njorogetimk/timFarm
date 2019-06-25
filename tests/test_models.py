@@ -1,3 +1,4 @@
+"""
 import os
 import unittest
 from timsystem import app, db
@@ -22,7 +23,7 @@ class TestModels(unittest.TestCase):
         self.app = app.test_client()
         db.create_all()
 
-    def anahilate(self):
+    def tearDown(self):
         os.remove(os.path.join(self.basedir, 'data.sqlite'))
 
     def _insertFarm(self, farm_name, farm_email):
@@ -72,6 +73,8 @@ class TestModels(unittest.TestCase):
         self.assertFalse(not farm)
 
     def test_2user(self):
+        farm_name = 'test2'
+        self._insertFarm(farm_name, '1@3d')
         password = '123'
         name = 'Timothy'
         email = 'njorogetm@gmail.com'
@@ -83,12 +86,14 @@ class TestModels(unittest.TestCase):
         self.assertTrue(trf)
 
     def test_3house(self):
+        self.test_1farm()
         self._insertHouse(farm_name, house_name)
         farm = Farm.query.filter_by(farm_name=farm_name).first()
         house = farm.house.filter_by(house_name=house_name).first()
         self.assertTrue(house)
 
     def test_4crop(self):
+        self.test_3house()
         self._insertCrop(house_name, 'Button', crop_no, 'June, 13')
         farm = Farm.query.filter_by(farm_name=farm_name).first()
         house = farm.house.filter_by(house_name=house_name).first()
@@ -96,6 +101,7 @@ class TestModels(unittest.TestCase):
         self.assertTrue(crop)
 
     def test_5day(self):
+        self.test_4crop()
         self._insertDay(crop_no, day_no, 'June 13')
         farm = Farm.query.filter_by(farm_name=farm_name).first()
         house = farm.house.filter_by(house_name=house_name).first()
@@ -104,6 +110,8 @@ class TestModels(unittest.TestCase):
         self.assertTrue(day)
 
     def test_6activity(self):
+        self.test_2user()
+        self.test_5day()
         self._insertActivities(day_no, 'Just testing', username)
         farm = Farm.query.filter_by(farm_name=farm_name).first()
         house = farm.house.filter_by(house_name=house_name).first()
@@ -113,6 +121,8 @@ class TestModels(unittest.TestCase):
         self.assertTrue(actv)
 
     def test_7harvest(self):
+        self.test_2user()
+        self.test_5day()
         self._insertHarvest(day_no, '123', username)
         farm = Farm.query.filter_by(farm_name=farm_name).first()
         house = farm.house.filter_by(house_name=house_name).first()
@@ -122,6 +132,8 @@ class TestModels(unittest.TestCase):
         self.assertTrue(harv)
 
     def test_8condition(self):
+        self.test_2user()
+        self.test_5day()
         self._insertCondition(day_no, '32', '23', username)
         farm = Farm.query.filter_by(farm_name=farm_name).first()
         house = farm.house.filter_by(house_name=house_name).first()
@@ -129,8 +141,7 @@ class TestModels(unittest.TestCase):
         day = crop.day.filter_by(day_no=day_no).first()
         condt = day.condition.all()
         self.assertTrue(condt)
-        self.anahilate()
-
 
 if __name__ == '__main__':
     unittest.main()
+"""

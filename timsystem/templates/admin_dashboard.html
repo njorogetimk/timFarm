@@ -9,54 +9,27 @@
         <h5>Active houses</h5>
         <p>The active houses are listed below</p>
         <ul class="collapsible black-text">
-          <li class="col s12 m4">
-            <div class="collapsible-header">Alpha</div>
-            <div class="collapsible-body">
-              <div class="row">
-                <div class="col 12">
-                  <img src="{{url_for('static', filename='images/mock/mock.jpg')}}" alt="House profile" height="100">
-                </div>
-                <div class="col s12">
-                  <p>current crop</p>
-                </div>
-                <div class="col s12">
-                  <a href="{{url_for('farm.disp_house', farm_name=session['farm_name'], house_name='Alpha')}}" class="btn">Explore</a>
-                </div>
-              </div>
-            </div>
-          </li>
-          <li class="col s12 m4">
-            <div class="collapsible-header">Beta</div>
-            <div class="collapsible-body">
-              <div class="row">
-                <div class="col 12">
-                  <img src="{{url_for('static', filename='images/mock/mock.jpg')}}" alt="House profile" height="100">
-                </div>
-                <div class="col s12">
-                  <p>current crop</p>
-                </div>
-                <div class="col s12">
-                  <a href="{{url_for('farm.disp_house', farm_name=session['farm_name'], house_name='Beta')}}" class="btn">Explore</a>
+          {% for house in houses %}
+            {% if house.status %}
+            <li class="col s12 m4">
+              <div class="collapsible-header">{{house.house_name}}</div>
+              <div class="collapsible-body">
+                <div class="row">
+                  <div class="col 12">
+                    <img src="{{url_for('static', filename='images/mock/mock.jpg')}}" alt="House profile" height="100">
+                  </div>
+                  <div class="col s12">
+                    <p>current crop</p>
+                    <p>{{house.currentCrop}}</p>
+                  </div>
+                  <div class="col s12">
+                    <a href="{{url_for('farm.disp_house', farm_name=session['farm_name'], house_name=house.house_name)}}" class="btn">Explore</a>
+                  </div>
                 </div>
               </div>
-            </div>
-          </li>
-          <li class="col s12 m4">
-            <div class="collapsible-header">Gamma</div>
-            <div class="collapsible-body">
-              <div class="row">
-                <div class="col 12">
-                  <img src="{{url_for('static', filename='images/mock/mock.jpg')}}" alt="House profile" height="100">
-                </div>
-                <div class="col s12">
-                  <p>current crop</p>
-                </div>
-                <div class="col s12">
-                  <a href="{{url_for('farm.disp_house', farm_name=session['farm_name'], house_name='Gamma')}}" class="btn">Explore</a>
-                </div>
-              </div>
-            </div>
-          </li>
+            </li>
+            {% endif %}
+          {% endfor %}
         </ul>
       </div>
       <div class="row z-depth-3 teal lighten-3">
@@ -74,56 +47,25 @@
       </div>
       <div class="row teal lighten-2">
         <h5>Dormant houses</h5>
-        <p>These are your archive houses</p>
+        <p>These are your dormant houses</p>
         <ul class="collapsible black-text">
-          <li class="col s12 m4">
-            <div class="collapsible-header">Alpha</div>
-            <div class="collapsible-body">
-              <div class="row">
-                <div class="col 12">
-                  <img src="{{url_for('static', filename='images/mock/mock.jpg')}}" alt="House profile" height="100">
-                </div>
-                <div class="col s12">
-                  <p>current crop</p>
-                </div>
-                <div class="col s12">
-                  <a href="" class="btn">Explore</a>
-                </div>
-              </div>
-            </div>
-          </li>
-          <li class="col s12 m4">
-            <div class="collapsible-header">Beta</div>
-            <div class="collapsible-body">
-              <div class="row">
-                <div class="col 12">
-                  <img src="{{url_for('static', filename='images/mock/mock.jpg')}}" alt="House profile" height="100">
-                </div>
-                <div class="col s12">
-                  <p>current crop</p>
-                </div>
-                <div class="col s12">
-                  <a href="" class="btn">Explore</a>
+          {% for house in houses %}
+            {% if not house.status %}
+            <li class="col s12 m4">
+              <div class="collapsible-header">{{house.house_name}}</div>
+              <div class="collapsible-body">
+                <div class="row">
+                  <div class="col 12">
+                    <img src="{{url_for('static', filename='images/mock/mock.jpg')}}" alt="House profile" height="100">
+                  </div>
+                  <div class="col s12">
+                    <a href="{{url_for('farm.disp_house', farm_name=session['farm_name'], house_name=house.house_name)}}" class="btn">Explore</a>
+                  </div>
                 </div>
               </div>
-            </div>
-          </li>
-          <li class="col s12 m4">
-            <div class="collapsible-header">Gamma</div>
-            <div class="collapsible-body">
-              <div class="row">
-                <div class="col 12">
-                  <img src="{{url_for('static', filename='images/mock/mock.jpg')}}" alt="House profile" height="100">
-                </div>
-                <div class="col s12">
-                  <p>current crop</p>
-                </div>
-                <div class="col s12">
-                  <a href="" class="btn">Explore</a>
-                </div>
-              </div>
-            </div>
-          </li>
+            </li>
+            {% endif %}
+          {% endfor %}
         </ul>
       </div>
     </div>

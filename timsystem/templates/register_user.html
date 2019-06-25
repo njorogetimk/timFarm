@@ -1,0 +1,26 @@
+{% extends 'admin_base.html' %}
+
+{% block content %}
+{% from 'includes/_formhelpers.html' import render_field %}
+  <section class="section">
+    <div class="container">
+      <h5>Add a new user</h5>
+      <form action="" method="post">
+        <div class="row">
+          <div class="input-field col s12">
+            {{render_field(form.user_name, class_='validate')}}
+          </div>
+          <div class="input-field col s12">
+            {{render_field(form.username, class_='validate')}}
+          </div>
+          <div class="input-field col s12">
+            {{render_field(form.user_email, class_='validate')}}
+          </div>
+          <div class="col s12">
+            <button type="submit" class="btn">Add</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </section>
+{% endblock %}

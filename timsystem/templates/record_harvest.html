@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+{% from 'includes/_formhelpers.html' import render_field %}
+  <section class="section">
+    <div class="container teal">
+      <h4>House: {{crop.house_name}}</h4>
+      <h5>The crop name: {{crop.crop_name}}</h5>
+      <h5>The crop number: {{crop.crop_no}}</h5>
+      <h5>Day: {{day.day_no}}</h5>
+      <h6>Update the harvest record</h6>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container teal">
+      <h5>Harvest Section</h5>
+      <div id="hvform">
+        <form action="{{url_for('farm.record_harvest', farm_name=session['farm_name'], house_name=crop.house_name, crop_no=crop.crop_no, day_serial=day.day_serial)}}" method="post">
+          <div class="row">
+            <div class="input-field col s12 m6">
+              {{render_field(form.punnets, class_="validate")}}
+            </div>
+            <div class="col s12 m6">
+              <button type="submit" name="action" class="btn">Update</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+{% endblock %}
+
+{% block scripting %}
+{% endblock %}

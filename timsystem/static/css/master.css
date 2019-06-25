@@ -6,3 +6,22 @@
 table{
   border: solid 2px;
 }
+
+/* Flash Messages */
+.success, .danger, .error, .msg{
+  padding: 7px;
+  margin: 10px;
+  border-radius: 30px;
+}
+.success{
+  background-color: #9ccc65;
+}
+.danger{
+  background-color: red;
+}
+.error{
+  background-color: red;
+}
+.msg{
+  background-color: blue;
+}

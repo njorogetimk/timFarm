@@ -1,8 +1,13 @@
 from flask import Blueprint, render_template, redirect, url_for, request
-from flask import session
-from wtforms import Form, StringField, PasswordField, IntegerField, validators
+from flask import session, flash
+from wtforms import Form, StringField, PasswordField, TextAreaField, validators
+from wtforms import IntegerField
 from wtforms.fields.html5 import EmailField
-from timsystem import app
+from timsystem.farm.models import Farm, Users, House, Crop
+from timsystem.farm.models import Day, Activities, Harvest, Condition
+from timsystem import db, app
+from timsystem.farm import daycheck as dayGiver
+import os
 
 
 farm = Blueprint('farm', __name__)
@@ -38,8 +43,18 @@ def registerFarm():
         farm_name = form.farm_name.data
         farm_email = form.farm_email.data
 
-        # flash new farm created
-        return redirect(url_for('farm.registerAdmin', farm_name=farm_name))
+        # Check if farm_name exists
+        farm = Farm.query.filter_by(farm_name=farm_name).first()
+        if not farm:
+            # The farm does not exist
+            newFarm = Farm(farm_name, farm_email)
+            db.session.add(newFarm)
+            db.session.commit()
+            flash('New farm %s created' % (farm_name), 'success')
+            return redirect(url_for('farm.registerAdmin', farm_name=farm_name))
+        else:
+            flash('The farm name %s taken' % farm_name, 'danger')
+            # return redirect(url_for('farm.registerFarm'))
     return render_template('register_farm.html', form=form)
 
 
@@ -56,9 +71,9 @@ class RegisterAdmin(Form):
         validators.DataRequired(),
         validators.Email()
     ])
-    phone_no = IntegerField('Phone Number', [
-        validators.DataRequired()
-    ])
+    # phone_no = IntegerField('Phone Number', [
+    #     validators.DataRequired()
+    # ])
     password = PasswordField('Password', [
             validators.DataRequired(),
             validators.EqualTo('confirm', message='Passwords do not match')
@@ -73,11 +88,29 @@ def registerAdmin(farm_name):
         admin_name = form.admin_name.data
         username = form.username.data
         admin_email = form.admin_email.data
-        phone_no = form.phone_no.data
+        # phone_no = form.phone_no.data
         password = form.password.data
 
-        # Flash you are now registered
-        return redirect(url_for('farm.signin'))
+        # Check if farm_name exists
+        farm = Farm.query.filter_by(farm_name=farm_name).first()
+        if not farm:
+            flash('The farm %s is not found' % farm_name, 'danger')
+            return render_template('register_admin.html', form=form)
+
+        # Check admin
+        user = farm.users.filter_by(username=username).first()
+        if not user:
+            # Register admin
+            newAdmin = Users(
+                admin_name, username, admin_email, password, farm_name, 'Admin'
+                )
+            db.session.add(newAdmin)
+            db.session.commit()
+            flash('Administrator Registered!', 'success')
+            return redirect(url_for('farm.signin'))
+        elif user.level == 'Admin':
+            flash('The admin is already registered', 'success')
+            return redirect(url_for('farm.signin'))
     return render_template('register_admin.html', form=form)
 
 
@@ -86,19 +119,42 @@ def signin():
     if request.method == 'POST':
         farm_name = request.form.get('farm_name')
         username = request.form.get('username')
-        level = request.form.get('level')
-        session['farm_name'] = farm_name
+        password = request.form.get('password')
 
-        if level == 'admin':
-            return redirect(url_for('farm.admin', farm_name=farm_name))
+        farm = Farm.query.filter_by(farm_name=farm_name).first()
+
+        if not farm:
+            flash('The farm %s is not registered' % farm_name, 'danger')
+            return render_template('signin.html')
+
+        user = farm.users.filter_by(username=username).first()
+        if not user:
+            flash('The username %s is not registered in the farm %s' % (
+                username, farm_name), 'danger')
+            return render_template('signin.html')
+
+        auth = user.authenticate(password)
+
+        if not auth:
+            flash('Wrong password', 'danger')
+            return render_template('signin.html')
         else:
-            return redirect(url_for('farm.user_dashboard', farm_name=farm_name))
+            session['farm_name'] = farm_name
+            session['username'] = username
+            if user.level == 'Admin':
+                session['Admin'] = True
+                return redirect(url_for('farm.admin', farm_name=farm_name))
+            else:
+                session['Admin'] = False
+                return redirect(url_for(
+                    'farm.user_dashboard', farm_name=farm_name))
     return render_template('signin.html')
 
 
 """
 Administrator routes
 """
+
 
 class HouseName(Form):
     house_name = StringField('Name of the new house', [
@@ -110,15 +166,31 @@ class HouseName(Form):
 def admin(farm_name):
     form = HouseName(request.form)
     # Get the houses belonging to the farm
+    farm = Farm.query.filter_by(farm_name=farm_name).first()
+    if not farm:
+        flash('Please register your farm %s' % farm_name, 'danger')
+        return redirect(url_for('farm.registerFarm'))
     # You should be able to determine which are active and dormant
-    return render_template('admin_dashboard.html', form=form)
+    houses = farm.house.all()
+    return render_template('admin_dashboard.html', form=form, houses=houses)
 
 # Display the house
 @farm.route('/<farm_name>/<house_name>/house')
 def disp_house(farm_name, house_name):
+    farm = Farm.query.filter_by(farm_name=farm_name).first()
+    if not farm:
+        flash('Please register your farm %s' % farm_name, 'danger')
+        return redirect(url_for('farm.registerFarm'))
+    house = farm.house.filter_by(house_name=house_name).first()
+    if not house:
+        flash('The house %s is not registered' % house_name, 'danger')
+        return redirect(url_for('farm.admin', farm_name=farm_name))
     # Query the number of crops present
     # The crops should have an active or archived status
-    return render_template('disp_house.html')
+    crops = house.crop.all()
+    active_crop = house.crop.filter_by(status=True).first()
+    return render_template('disp_house.html', crops=crops, active_crop=active_crop, house_name=house_name)
+
 
 # Add a house
 @farm.route('/<farm_name>/add/house', methods=['POST', 'GET'])
@@ -127,17 +199,60 @@ def add_house(farm_name):
     if request.method == 'POST' and form.validate():
         house_name = form.house_name.data
         # save the data
-        # Flash new house created
+        farm = Farm.query.filter_by(farm_name=farm_name).first()
+        if not farm:
+            flash('Please register your farm %s' % farm_name, 'danger')
+            return redirect(url_for('farm.registerFarm'))
+        house = farm.house.filter_by(house_name=house_name).first()
+        if not house:
+            house = House(farm_name, house_name)
+            db.session.add(house)
+            db.session.commit()
+            flash('House %s created' % house_name, 'success')
+        else:
+            flash('House %s is present' % house_name, 'success')
         return redirect(url_for('farm.admin', farm_name=farm_name))
-    # Flash error
     return redirect(url_for('farm.admin', farm_name=farm_name))
+
 
 # Display a crop
 @farm.route('/<farm_name>/<house_name>/crop/<crop_no>')
 def disp_crop(farm_name, house_name, crop_no):
     # Query the crop number
-    
-    return render_template('disp_crop.html')
+    farm = Farm.query.filter_by(farm_name=farm_name).first()
+    if not farm:
+        flash('Please register your farm %s' % farm_name, 'danger')
+        return redirect(url_for('farm.registerFarm'))
+    house = farm.house.filter_by(house_name=house_name).first()
+    if not house:
+        flash('The house %s is not registered' % house_name, 'danger')
+        return redirect(url_for('farm.admin', farm_name=farm_name))
+    crop = house.crop.filter_by(crop_no=crop_no).first()
+    if not crop:
+        flash('The crop number is not found', 'danger')
+        return redirect(url_for('farm.disp_house', house_name=house_name, farm_name=farm_name))
+
+    days = crop.day.order_by('day_no').all()
+    daysdata = {}
+
+    for day in days:
+        harv = day.harvest.all()
+        condt = day.condition.all()
+        actv = day.activities.all()
+        if harv:
+            harv = harv[0]
+        if condt:
+            condt = condt[0]
+        if actv:
+            actv = actv[0]
+        daysdata[day.day_serial] = {
+            "condition": condt, "harvest": harv, "activities": actv
+        }
+
+    day_status = crop.day.filter_by(status=True).first()
+    date = dayGiver.ConvDate(crop.start_date)
+    min_date = date.result()
+    return render_template('disp_crop.html', crop=crop, days=days, daysdata=daysdata, day_status=day_status, min_date=min_date)
 
 
 class CropForm(Form):
@@ -152,36 +267,285 @@ class CropForm(Form):
     start_date = StringField('Select the start date', [
         validators.DataRequired()
     ])
+
+
 # Add a crop
 @farm.route('/<farm_name>/<house_name>/add/crop', methods=['GET', 'POST'])
 def add_crop(farm_name, house_name):
     form = CropForm(request.form)
+    farm = Farm.query.filter_by(farm_name=farm_name).first()
+    if not farm:
+        flash('Please register your farm %s' % farm_name, 'danger')
+        return redirect(url_for('farm.registerFarm'))
+    house = farm.house.filter_by(house_name=house_name).first()
+    if not house:
+        flash('The house %s is not registered' % house_name, 'danger')
+        return redirect(url_for('farm.admin', farm_name=farm_name))
+
     if request.method == 'POST' and form.validate():
+        # Get the data and update it
         crop_name = form.crop_name.data
         crop_no = form.crop_no.data
         start_date = form.start_date.data
-        # Get the data and update it
-        # Get started on the new crop
-        return redirect(url_for('farm.disp_crop', farm_name=farm_name, house_name=house_name, crop_no=crop_no))
+
+        crop = house.crop.filter_by(crop_no=crop_no).first()
+        if not crop:
+            # Get started on the new crop
+            crop = Crop(house_name, crop_name, crop_no, start_date)
+            day_serial = '1-'+crop_no
+            day = Day(crop_no, day_serial, start_date)
+            db.session.add(crop)
+            db.session.add(day)
+            db.session.commit()
+            flash('New crop %s created' % crop_no, 'success')
+            return redirect(url_for('farm.disp_house', farm_name=farm_name, house_name=house_name))
+        else:
+            flash('The crop number %s is present' % crop_no, 'danger')
+            return redirect(url_for('farm.disp_house', farm_name=farm_name, house_name=house_name))
     return render_template('add_crop.html', form=form)
+
+
+@farm.route('/<farm_name>/<house_name>/<crop_no>/add/day', methods=['POST'])
+def add_day(farm_name, house_name, crop_no):
+    farm = Farm.query.filter_by(farm_name=farm_name).first()
+    if not farm:
+        flash('Please register your farm %s' % farm_name, 'danger')
+        return redirect(url_for('farm.registerFarm'))
+    house = farm.house.filter_by(house_name=house_name).first()
+    if not house:
+        flash('The house %s is not registered' % house_name, 'danger')
+        return redirect(url_for('farm.admin', farm_name=farm_name))
+    crop = house.crop.filter_by(crop_no=crop_no).first()
+    if not crop:
+        flash('The crop %s is not present in this house' % crop_no, 'danger')
+        return redirect(url_for('farm.disp_house', farm_name=farm_name, house_name=house_name))
+    date = request.form.get('date')
+    daycheck = dayGiver.Dates(crop.start_date, date)
+    day_no = str(daycheck.day_no())
+    day_serial = day_no+'-'+crop.crop_no
+    get_day = crop.day.filter_by(day_serial=day_serial).first()
+    if not get_day:
+        day = Day(crop_no, day_serial, date)
+        db.session.add(day)
+        db.session.commit()
+        flash('Day %s of crop %s started' % (day_no, crop.crop_no), 'success')
+        return redirect(url_for('farm.disp_crop', farm_name=farm_name, house_name=house_name, crop_no=crop_no))
+    else:
+        flash('The day %s is present. Update its record' % day_no, 'success')
+        return redirect(url_for('farm.disp_crop', farm_name=farm_name, house_name=house_name, crop_no=crop_no))
+
+
+class ActvForm(Form):
+    description = TextAreaField("Fill in the day's activities", [
+        validators.DataRequired(),
+        validators.length(min=5, max=600)
+    ])
+
+
+class CondtForm(Form):
+    temperature = IntegerField('Temperature in Celcius', [
+        validators.DataRequired()
+    ])
+    humidity = IntegerField('Relative Humidity', [
+        validators.DataRequired()
+    ])
+    time = StringField('Select the time the records were taken', [
+        validators.DataRequired()
+    ])
+
+
+class HarvForm(Form):
+    punnets = IntegerField('Enter the number of punnets harvested',[
+        validators.DataRequired()
+    ])
+
+
+@farm.route('/<farm_name>/<house_name>/<crop_no>/<day_serial>/record', methods=[
+    'POST', 'GET'])
+def record(farm_name, house_name, crop_no, day_serial):
+    hvForm = HarvForm(request.form)
+    cdnForm = CondtForm(request.form)
+    actvForm = ActvForm(request.form)
+    farm = Farm.query.filter_by(farm_name=farm_name).first()
+    if not farm:
+        flash('Please register your farm %s' % farm_name, 'danger')
+        return redirect(url_for('farm.registerFarm'))
+    house = farm.house.filter_by(house_name=house_name).first()
+    if not house:
+        flash('The house %s is not registered' % house_name, 'danger')
+        return redirect(url_for('farm.admin', farm_name=farm_name))
+    crop = house.crop.filter_by(crop_no=crop_no).first()
+    if not crop:
+        flash('The crop %s is not present in this house' % crop_no, 'danger')
+        return redirect(url_for('farm.disp_house', farm_name=farm_name, house_name=house_name))
+    day = crop.day.filter_by(day_serial=day_serial).first()
+    if not day:
+        flash('The day %s is not added' % day_serial, 'danger')
+        return redirect(url_for('farm.disp_crop', farm_name=farm_name, crop_no=crop_no, house_name=house_name))
+
+    return render_template('record.html', hvForm=hvForm, cdnForm=cdnForm, actvForm=actvForm, crop=crop, day=day)
+
+
+@farm.route('/<farm_name>/<house_name>/<crop_no>/<day_serial>/record/activities', methods=['POST', 'GET'])
+def record_activities(farm_name, house_name, crop_no, day_serial):
+    form = ActvForm(request.form)
+    farm = Farm.query.filter_by(farm_name=farm_name).first()
+    if not farm:
+        flash('Please register your farm %s' % farm_name, 'danger')
+        return redirect(url_for('farm.registerFarm'))
+    house = farm.house.filter_by(house_name=house_name).first()
+    if not house:
+        flash('The house %s is not registered' % house_name, 'danger')
+        return redirect(url_for('farm.admin', farm_name=farm_name))
+    crop = house.crop.filter_by(crop_no=crop_no).first()
+    if not crop:
+        flash('The crop %s is not present in this house' % crop_no, 'danger')
+        return redirect(url_for('farm.disp_house', farm_name=farm_name, house_name=house_name))
+    day = crop.day.filter_by(day_serial=day_serial).first()
+    if not day:
+        flash('The day %s is not added' % day_serial, 'danger')
+        return redirect(url_for('farm.disp_crop', farm_name=farm_name, crop_no=crop_no, house_name=house_name))
+
+    if request.method == 'POST' and form.validate():
+        description = form.description.data
+        activities = Activities(day.day_serial, description, session['username'])
+        db.session.add(activities)
+        db.session.commit()
+        flash('Day %s activities updated' % day.day_no, 'success')
+        return redirect(url_for('farm.disp_crop', farm_name=farm_name, house_name=house_name, crop_no=crop_no))
+    return render_template('record_activities.html', form=form, crop=crop, day=day)
+
+@farm.route('/<farm_name>/<house_name>/<crop_no>/<day_serial>/record/condition', methods=['POST', 'GET'])
+def record_condition(farm_name, house_name, crop_no, day_serial):
+    form = CondtForm(request.form)
+    farm = Farm.query.filter_by(farm_name=farm_name).first()
+    if not farm:
+        flash('Please register your farm %s' % farm_name, 'danger')
+        return redirect(url_for('farm.registerFarm'))
+    house = farm.house.filter_by(house_name=house_name).first()
+    if not house:
+        flash('The house %s is not registered' % house_name, 'danger')
+        return redirect(url_for('farm.admin', farm_name=farm_name))
+    crop = house.crop.filter_by(crop_no=crop_no).first()
+    if not crop:
+        flash('The crop %s is not present in this house' % crop_no, 'danger')
+        return redirect(url_for('farm.disp_house', farm_name=farm_name, house_name=house_name))
+    day = crop.day.filter_by(day_serial=day_serial).first()
+    if not day:
+        flash('The day %s is not added' % day_serial, 'danger')
+        return redirect(url_for('farm.disp_crop', farm_name=farm_name, crop_no=crop_no, house_name=house_name))
+
+    if request.method == 'POST' and form.validate():
+        temperature = form.temperature.data
+        humidity = form.humidity.data
+        time = form.time.data
+        condition = Condition(day.day_serial, temperature, humidity, time, session['username'])
+        db.session.add(condition)
+        db.session.commit()
+        flash('Day %s condition updated' % day.day_no, 'success')
+        return redirect(url_for('farm.disp_crop', farm_name=farm_name, house_name=house_name, crop_no=crop_no))
+    return render_template('record_condition.html', form=form, crop=crop, day=day)
+
+
+@farm.route('/<farm_name>/<house_name>/<crop_no>/<day_serial>/record/harvest', methods=['POST', 'GET'])
+def record_harvest(farm_name, house_name, crop_no, day_serial):
+    form = HarvForm(request.form)
+    farm = Farm.query.filter_by(farm_name=farm_name).first()
+    if not farm:
+        flash('Please register your farm %s' % farm_name, 'danger')
+        return redirect(url_for('farm.registerFarm'))
+    house = farm.house.filter_by(house_name=house_name).first()
+    if not house:
+        flash('The house %s is not registered' % house_name, 'danger')
+        return redirect(url_for('farm.admin', farm_name=farm_name))
+    crop = house.crop.filter_by(crop_no=crop_no).first()
+    if not crop:
+        flash('The crop %s is not present in this house' % crop_no, 'danger')
+        return redirect(url_for('farm.disp_house', farm_name=farm_name, house_name=house_name))
+    day = crop.day.filter_by(day_serial=day_serial).first()
+    if not day:
+        flash('The day %s is not added' % day_serial, 'danger')
+        return redirect(url_for('farm.disp_crop', farm_name=farm_name, crop_no=crop_no, house_name=house_name))
+
+    if request.method == 'POST' and form.validate():
+        punnets = form.punnets.data
+        harvest = Harvest(day.day_serial, punnets, session['username'])
+        db.session.add(harvest)
+        db.session.commit()
+        flash('Day %s harvest updated' % day.day_no, 'success')
+        return redirect(url_for('farm.disp_crop', farm_name=farm_name, house_name=house_name, crop_no=crop_no))
+    return render_template('record_harvest.html', form=form, crop=crop, day=day)
 
 
 # View Users
 @farm.route('/<farm_name>/view-users')
 def disp_users(farm_name):
-    return render_template('disp_users.html')
+    farm = Farm.query.filter_by(farm_name=farm_name).first()
+    if not farm:
+        flash('Please register your farm %s' % farm_name, 'danger')
+        return redirect(url_for('farm.registerFarm'))
+    users = farm.users.order_by('username').all()
+    return render_template('disp_users.html', users=users)
+
+
+class UserForm(Form):
+    user_name = StringField('Name', [
+        validators.DataRequired(),
+        validators.length(min=2, max=50)
+    ])
+    username = StringField('Username', [
+        validators.DataRequired(),
+        validators.length(min=3, max=20)
+    ])
+    user_email = EmailField('Email', [
+        validators.DataRequired(),
+        validators.Email()
+    ])
 
 
 # Register User
 @farm.route('/<farm_name>/register-user', methods=['POST', 'GET'])
 def reg_user(farm_name):
-    return render_template('register_user.html')
+    form = UserForm(request.form)
+    farm = Farm.query.filter_by(farm_name=farm_name).first()
+    if not farm:
+        flash('Please register your farm %s' % farm_name, 'danger')
+        return redirect(url_for('farm.registerFarm'))
+
+    if request.method == 'POST':
+        user_name = form.user_name.data
+        username = form.username.data
+        user_email = form.user_email.data
+        user = farm.users.filter_by(username=username).first()
+        if not user:
+            # pd = os.urandom(3)
+            # password = pd.hex()
+            password = '123'
+            user = Users(user_name, username, user_email, password, farm_name, 'User')
+            db.session.add(user)
+            db.session.commit()
+            flash('New user %s created' % user_name, 'success')
+            return redirect(url_for('farm.disp_users', farm_name=farm_name))
+        else:
+            flash('User by the name %s exists' % username, 'danger')
+    return render_template('register_user.html', form=form)
 
 
 # Delete User
 @farm.route('/<farm_name>/delete-user/<username>')
 def del_users(farm_name, username):
-    return redirect(url_for('farm.disp_users'))
+    farm = Farm.query.filter_by(farm_name=farm_name).first()
+    if not farm:
+        flash('Please register your farm %s' % farm_name, 'danger')
+        return redirect(url_for('farm.registerFarm'))
+    user = farm.users.filter_by(username=username).first()
+    if not user:
+        flash('The user %s does not exist' % username, 'danger')
+        return redirect(url_for('farm.disp_users', farm_name=farm_name))
+    db.session.delete(user)
+    db.session.commit()
+    flash('The user %s has been successfully deleted' % user.name, 'success')
+    return redirect(url_for('farm.disp_users', farm_name=farm_name))
 
 
 # Messaging
@@ -197,11 +561,6 @@ User Routes
 @farm.route('/<farm_name>/user-dashboard')
 def user_dashboard(farm_name):
     return render_template('user_dashboard.html')
-
-# Update records
-@farm.route('/<farm_name>/record', methods=['POST', 'GET'])
-def record(farm_name):
-    return render_template('record.html')
 
 
 # Sign out route
