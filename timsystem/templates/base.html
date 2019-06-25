@@ -23,8 +23,18 @@
     {% block content %}
     {% endblock %}
 
+    <footer class="page-footer teal darken-3">
+      <div class="footer-copyright">
+        <div class="container center">
+          © 2019 timFarm
+        </div>
+      </div>
+    </footer>
+
     <!--JavaScript at end of body for optimized loading-->
     <script type="text/javascript" src="{{url_for('static', filename='js/materialize.min.js')}}"></script>
     <script type="text/javascript" src="{{url_for('static', filename='js/matCustom.js')}}"></script>
+    {% block scripting %}
+    {% endblock %}
   </body>
 </html>
