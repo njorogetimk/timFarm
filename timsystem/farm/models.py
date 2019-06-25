@@ -120,6 +120,7 @@ class Day(db.Model):
     day_serial: unique day number in the crop calender
     date: date of the day
     crop_no: crop number of associated crop
+    status: True (Current day. Not all data is updated)
     """
     id = db.Column(db.Integer, primary_key=True)
     day_serial = db.Column(db.String, unique=True)
