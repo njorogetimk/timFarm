@@ -64,3 +64,27 @@ class Dates():
                 end_year = 365 - day_no_1 + 1
                 day_no = end_year + day_no_2
         return day_no
+
+
+class ConvDate():
+    """
+    Converts date formart from 'Jun 01, 2019' to '2019, 6, 1'
+    date: Date to be converted
+    """
+
+    def __init__(self, date):
+        self.date = date
+
+    def result(self):
+        """
+        Returns date in formart 'yyyy, mm, dd'
+        """
+        self.monthmapper = {
+            'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6,
+            'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12
+        }
+        self.month = self.monthmapper[self.date.split()[0]]
+        self.day = self.date.split()[1].strip(',')
+        self.year = self.date.split()[2]
+        newdate = self.year+', '+str(self.month)+', '+self.day
+        return newdate

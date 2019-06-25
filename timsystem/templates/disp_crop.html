@@ -138,7 +138,9 @@
   <script type="text/javascript">
     document.addEventListener('DOMContentLoaded', function() {
       var elems = document.querySelectorAll('.mydatepicker');
-      var instances = M.Datepicker.init(elems, {});
+      var instances = M.Datepicker.init(elems, {
+        minDate: new Date('{{min_date}}')
+      });
     });
   </script>
 {% endblock %}

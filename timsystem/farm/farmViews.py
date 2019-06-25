@@ -249,8 +249,10 @@ def disp_crop(farm_name, house_name, crop_no):
         }
 
     day_status = crop.day.filter_by(status=True).first()
-
-    return render_template('disp_crop.html', crop=crop, days=days, daysdata=daysdata, day_status=day_status)
+    date = dayGiver.ConvDate(crop.start_date)
+    min_date = date.result()
+    app.logger.info(type(min_date))
+    return render_template('disp_crop.html', crop=crop, days=days, daysdata=daysdata, day_status=day_status, min_date=min_date)
 
 
 class CropForm(Form):
