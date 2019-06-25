@@ -7,6 +7,7 @@ from timsystem.farm.models import Farm, Users, House, Crop
 from timsystem.farm.models import Day, Activities, Harvest, Condition
 from timsystem import db, app
 from timsystem.farm import daycheck as dayGiver
+import os
 
 
 farm = Blueprint('farm', __name__)
@@ -251,7 +252,6 @@ def disp_crop(farm_name, house_name, crop_no):
     day_status = crop.day.filter_by(status=True).first()
     date = dayGiver.ConvDate(crop.start_date)
     min_date = date.result()
-    app.logger.info(type(min_date))
     return render_template('disp_crop.html', crop=crop, days=days, daysdata=daysdata, day_status=day_status, min_date=min_date)
 
 
@@ -480,19 +480,72 @@ def record_harvest(farm_name, house_name, crop_no, day_serial):
 # View Users
 @farm.route('/<farm_name>/view-users')
 def disp_users(farm_name):
-    return render_template('disp_users.html')
+    farm = Farm.query.filter_by(farm_name=farm_name).first()
+    if not farm:
+        flash('Please register your farm %s' % farm_name, 'danger')
+        return redirect(url_for('farm.registerFarm'))
+    users = farm.users.order_by('username').all()
+    return render_template('disp_users.html', users=users)
+
+
+class UserForm(Form):
+    user_name = StringField('Name', [
+        validators.DataRequired(),
+        validators.length(min=2, max=50)
+    ])
+    username = StringField('Username', [
+        validators.DataRequired(),
+        validators.length(min=3, max=20)
+    ])
+    user_email = EmailField('Email', [
+        validators.DataRequired(),
+        validators.Email()
+    ])
 
 
 # Register User
 @farm.route('/<farm_name>/register-user', methods=['POST', 'GET'])
 def reg_user(farm_name):
-    return render_template('register_user.html')
+    form = UserForm(request.form)
+    farm = Farm.query.filter_by(farm_name=farm_name).first()
+    if not farm:
+        flash('Please register your farm %s' % farm_name, 'danger')
+        return redirect(url_for('farm.registerFarm'))
+
+    if request.method == 'POST':
+        user_name = form.user_name.data
+        username = form.username.data
+        user_email = form.user_email.data
+        user = farm.users.filter_by(username=username).first()
+        if not user:
+            # pd = os.urandom(3)
+            # password = pd.hex()
+            password = '123'
+            user = Users(user_name, username, user_email, password, farm_name, 'User')
+            db.session.add(user)
+            db.session.commit()
+            flash('New user %s created' % user_name, 'success')
+            return redirect(url_for('farm.disp_users', farm_name=farm_name))
+        else:
+            flash('User by the name %s exists' % username, 'danger')
+    return render_template('register_user.html', form=form)
 
 
 # Delete User
 @farm.route('/<farm_name>/delete-user/<username>')
 def del_users(farm_name, username):
-    return redirect(url_for('farm.disp_users'))
+    farm = Farm.query.filter_by(farm_name=farm_name).first()
+    if not farm:
+        flash('Please register your farm %s' % farm_name, 'danger')
+        return redirect(url_for('farm.registerFarm'))
+    user = farm.users.filter_by(username=username).first()
+    if not user:
+        flash('The user %s does not exist' % username, 'danger')
+        return redirect(url_for('farm.disp_users', farm_name=farm_name))
+    db.session.delete(user)
+    db.session.commit()
+    flash('The user %s has been successfully deleted' % user.name, 'success')
+    return redirect(url_for('farm.disp_users', farm_name=farm_name))
 
 
 # Messaging
