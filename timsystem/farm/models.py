@@ -117,20 +117,23 @@ class Crop(db.Model):
 
 class Day(db.Model):
     """
-    day_no: unique day number in the crop calender
+    day_serial: unique day number in the crop calender
     date: date of the day
     crop_no: crop number of associated crop
     """
     id = db.Column(db.Integer, primary_key=True)
-    day_no = db.Column(db.String, unique=True)
+    day_serial = db.Column(db.String, unique=True)
+    day_no = db.Column(db.Integer)
     date = db.Column(db.String)
     status = db.Column(db.Boolean)
     crop = db.relationship('Crop', backref=db.backref('day', lazy='dynamic'))
     crop_no = db.Column(db.String, db.ForeignKey('crop.crop_no'))
+    counter = db.Column(db.Integer)
 
-    def __init__(self, crop_no, day_no, date):
+    def __init__(self, crop_no, day_serial, date):
         self.date = date
-        self.day_no = day_no
+        self.day_serial = day_serial
+        self.day_no = int(day_serial.split('-')[0])
         self.status = True
         self.crop = Crop.query.filter_by(crop_no=crop_no).first()
         self.counter = 0
@@ -144,7 +147,7 @@ class Day(db.Model):
             self.status = False
 
     def __repr__(self):
-        return '<Day {}, CropNo {}>'.format(self.day_no, self.crop_no)
+        return '<Day {}, CropNo {}>'.format(self.day_serial, self.crop_no)
 
 
 class Harvest(db.Model):
@@ -152,7 +155,7 @@ class Harvest(db.Model):
     punnets: Number of harvested punnets
     record_time: time the record was updated in the system
     chronicler: the user who updated the record
-    day_no: the day of the harvest
+    day_serial: the day of the harvest
     """
     id = db.Column(db.Integer, primary_key=True)
     punnets = db.Column(db.String)
@@ -160,22 +163,22 @@ class Harvest(db.Model):
     day = db.relationship('Day', backref=db.backref(
         'harvest', lazy='dynamic'
     ))
-    day_no = db.Column(db.String, db.ForeignKey('day.day_no'))
+    day_serial = db.Column(db.String, db.ForeignKey('day.day_serial'))
     user = db.relationship('Users', backref=db.backref(
         'harvest', lazy='dynamic'
     ))
     chronicler = db.Column(db.String, db.ForeignKey('users.username'))
 
-    def __init__(self, day_no, punnets, chronicler):
+    def __init__(self, day_serial, punnets, chronicler):
         self.punnets = punnets
-        self.day = Day.query.filter_by(day_no=day_no).first()
+        self.day = Day.query.filter_by(day_serial=day_serial).first()
         self.user = Users.query.filter_by(username=chronicler).first()
         time = dt.now()
         self.record_time = time.ctime()
         self.day.day_check()
 
     def __repr__(self):
-        return '<Harvest, {} Day {}>'.format(self.punnets, self.day_no)
+        return '<Harvest, {} Day {}>'.format(self.punnets, self.day_serial)
 
 
 class Condition(db.Model):
@@ -184,32 +187,34 @@ class Condition(db.Model):
     humidity: relative humidity
     record_time: time the record was updated in the system
     chronicler: the user who updated the record
-    day_no: the day of the harvest
+    day_serial: the day of the harvest
     """
     id = db.Column(db.Integer, primary_key=True)
     temperature = db.Column(db.String)
     humidity = db.Column(db.String)
+    time = db.Column(db.String)
     record_time = db.Column(db.String)
     day = db.relationship('Day', backref=db.backref(
         'condition', lazy='dynamic'
     ))
-    day_no = db.Column(db.String, db.ForeignKey('day.day_no'))
+    day_serial = db.Column(db.String, db.ForeignKey('day.day_serial'))
     user = db.relationship('Users', backref=db.backref(
         'condition', lazy='dynamic'
     ))
     chronicler = db.Column(db.String, db.ForeignKey('users.username'))
 
-    def __init__(self, day_no, temperature, humidity, chronicler):
+    def __init__(self, day_serial, temperature, humidity, time, chronicler):
         self.temperature = temperature
         self.humidity = humidity
-        self.day = Day.query.filter_by(day_no=day_no).first()
+        self.time = time
+        self.day = Day.query.filter_by(day_serial=day_serial).first()
         self.user = Users.query.filter_by(username=chronicler).first()
         time = dt.now()
         self.record_time = time.ctime()
         self.day.day_check()
 
     def __repr__(self):
-        return '<Condition: {}>'.format(self.day_no)
+        return '<Condition: {}>'.format(self.day_serial)
 
 
 class Activities(db.Model):
@@ -217,7 +222,7 @@ class Activities(db.Model):
     description: Short description of the day's activities
     record_time: time the record was updated in the system
     chronicler: the user who updated the record
-    day_no: the day of the harvest
+    day_serial: the day of the harvest
     """
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String, nullable=True)
@@ -225,19 +230,19 @@ class Activities(db.Model):
     day = db.relationship('Day', backref=db.backref(
         'activities', lazy='dynamic'
     ))
-    day_no = db.Column(db.String, db.ForeignKey('day.day_no'))
+    day_serial = db.Column(db.String, db.ForeignKey('day.day_serial'))
     user = db.relationship('Users', backref=db.backref(
         'activities', lazy='dynamic'
     ))
     chronicler = db.Column(db.String, db.ForeignKey('users.username'))
 
-    def __init__(self, day_no, description, chronicler):
+    def __init__(self, day_serial, description, chronicler):
         self.description = description
-        self.day = Day.query.filter_by(day_no=day_no).first()
+        self.day = Day.query.filter_by(day_serial=day_serial).first()
         self.user = Users.query.filter_by(username=chronicler).first()
         time = dt.now()
         self.record_time = time.ctime()
         self.day.day_check()
 
     def __repr__(self):
-        return '<Activities {}>'.format(self.day_no)
+        return '<Activities {}>'.format(self.day_serial)
