@@ -6,9 +6,15 @@
       <h4>The crop name: {{crop.crop_name}}</h4>
       <h4>The crop number: {{crop.crop_no}}</h4>
       <h5>
-        Start Date: {{crop.start_date}}
+        <p>Start Date: {{crop.start_date}};</p>
+        <p>
+          Current Date: {{crop.current_date}};
+          {% if day_status %}
+          <small>Day {{day_status.day_no}}</small>
+          {% endif %}
+        </p>
         {% if crop.end_date %}
-          End Date: {{crop.end_date}}
+          <p>End Date: {{crop.end_date}}</p>
         {% endif %}
       </h5>
     </div>
@@ -18,20 +24,28 @@
     <div class="container teal">
       <h5>Crop Activities</h5>
       <hr>
-      <ul class="collapsible black-text">
-        {% for day in days %}
-          <li class="col s12 m3">
-            <div class="collapsible-header">{{day.day_serial}}</div>
-            <div class="collapsible-body">
-              {% if daysdata[day.day_serial]['activities'] %}
-                {{daysdata[day.day_serial]['activities']}}
-              {% else %}
-                <a href="{{url_for('farm.record_activities', farm_name=session['farm_name'], house_name=crop.house_name, crop_no=crop.crop_no, day_serial=day.day_serial)}}" class="btn">Update</a>
+      <div class="row">
+        <ul class="collapsible black-text">
+          {% for day in days %}
+            <li class="col s12 m3">
+              {% if day.status %}
+                {% set color = 'blue' %}
               {% endif %}
-            </div>
-          </li>
-        {% endfor %}
-      </ul>
+              <div class="collapsible-header {{color}}">Day {{day.day_no}}</div>
+              <div class="collapsible-body">
+                {% if daysdata[day.day_serial]['activities'] %}
+                  <p>{{daysdata[day.day_serial]['activities'].description}}</p>
+                  {% if session['Admin']%}
+                    <p>Chronicler: {{daysdata[day.day_serial]['condition'].chronicler}}</p>
+                  {% endif %}
+                {% else %}
+                  <a href="{{url_for('farm.record_activities', farm_name=session['farm_name'], house_name=crop.house_name, crop_no=crop.crop_no, day_serial=day.day_serial)}}" class="btn">Update</a>
+                {% endif %}
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
     </div>
   </section>
 
@@ -39,20 +53,30 @@
     <div class="container teal">
       <h5>Crop Condition</h5>
       <hr>
-      <ul class="collapsible black-text">
-        {% for day in days %}
-          <li class="col s12 m3">
-            <div class="collapsible-header">{{day.day_serial}}</div>
-            <div class="collapsible-body">
-              {% if daysdata[day.day_serial]['condition'] %}
-                {{daysdata[day.day_serial]['condition']}}
-              {% else %}
-                <a href="{{url_for('farm.record_condition', farm_name=session['farm_name'], house_name=crop.house_name, crop_no=crop.crop_no, day_serial=day.day_serial)}}" class="btn">Update</a>
+      <div class="row">
+        <ul class="collapsible black-text">
+          {% for day in days %}
+            <li class="col s12 m3">
+              {% if day.status %}
+                {% set color = 'blue' %}
               {% endif %}
-            </div>
-          </li>
-        {% endfor %}
-      </ul>
+              <div class="collapsible-header {{color}}">Day {{day.day_no}}</div>
+              <div class="collapsible-body">
+                {% if daysdata[day.day_serial]['condition'] %}
+                  <p>Temperature: {{daysdata[day.day_serial]['condition'].temperature}}</p>
+                  <p>Humidity: {{daysdata[day.day_serial]['condition'].humidity}}</p>
+                  <p>Time: {{daysdata[day.day_serial]['condition'].time}}</p>
+                  {% if session['Admin']%}
+                    <p>Chronicler: {{daysdata[day.day_serial]['condition'].chronicler}}</p>
+                  {% endif %}
+                {% else %}
+                  <a href="{{url_for('farm.record_condition', farm_name=session['farm_name'], house_name=crop.house_name, crop_no=crop.crop_no, day_serial=day.day_serial)}}" class="btn">Update</a>
+                {% endif %}
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
     </div>
   </section>
 
@@ -60,44 +84,54 @@
     <div class="container teal">
       <h5>Crop Harvests</h5>
       <hr>
-      <ul class="collapsible black-text">
-        {% for day in days %}
-          <li class="col s12 m3">
-            <div class="collapsible-header">{{day.day_serial}}</div>
-            <div class="collapsible-body">
-              {% if daysdata[day.day_serial]['harvest'] %}
-                {{daysdata[day.day_serial]['harvest']}}
-              {% else %}
-                <a href="{{url_for('farm.record_harvest', farm_name=session['farm_name'], house_name=crop.house_name, crop_no=crop.crop_no, day_serial=day.day_serial)}}" class="btn">Update</a>
+      <div class="row">
+        <ul class="collapsible black-text">
+          {% for day in days %}
+            <li class="col s12 m3">
+              {% if day.status %}
+                {% set color = 'blue' %}
               {% endif %}
-            </div>
-          </li>
-        {% endfor %}
-      </ul>
+              <div class="collapsible-header {{color}}">Day {{day.day_no}}</div>
+              <div class="collapsible-body">
+                {% if daysdata[day.day_serial]['harvest'] %}
+                  <p>{{daysdata[day.day_serial]['harvest'].punnets}} punnets</p>
+                  {% if session['Admin']%}
+                    <p>Chronicler: {{daysdata[day.day_serial]['condition'].chronicler}}</p>
+                  {% endif %}
+                {% else %}
+                  <a href="{{url_for('farm.record_harvest', farm_name=session['farm_name'], house_name=crop.house_name, crop_no=crop.crop_no, day_serial=day.day_serial)}}" class="btn">Update</a>
+                {% endif %}
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
     </div>
   </section>
 
-  <section class="section">
-    <div class="container teal">
-      <h5>Start a new day</h5>
-      <form action="{{url_for('farm.add_day', farm_name=session['farm_name'], house_name=crop.house_name, crop_no=crop.crop_no)}}" method="post">
-        <div class="row">
-          <div class="input-field col s12 m6">
-            <input type="text" name="date" class="mydatepicker" id="date">
-            <label for="date">Select the date</label>
+  {% if session['Admin'] %}
+    <section class="section">
+      <div class="container teal">
+        <h5>Start a new day</h5>
+        <form action="{{url_for('farm.add_day', farm_name=session['farm_name'], house_name=crop.house_name, crop_no=crop.crop_no)}}" method="post">
+          <div class="row">
+            <div class="input-field col s12 m6">
+              <input type="text" name="date" class="mydatepicker" id="date">
+              <label for="date">Select the date</label>
+            </div>
+            {% if day_status %}
+              {% set disabled = 'disabled' %}
+            {% else %}
+              {% set disabled = '' %}
+            {% endif %}
+            <div class="col s12 m6">
+              <button type="submit" name="action" class="{{disabled}} btn">Start</button>
+            </div>
           </div>
-          {% if day_status %}
-            {% set disabled = 'disabled' %}
-          {% else %}
-            {% set disabled = '' %}
-          {% endif %}
-          <div class="col s12 m6">
-            <button type="submit" name="action" class="{{disabled}} btn">Start</button>
-          </div>
-        </div>
-      </form>
-    </div>
-  </section>
+        </form>
+      </div>
+    </section>
+  {% endif %}
 {% endblock %}
 
 {% block scripting %}
