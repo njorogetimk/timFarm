@@ -21,12 +21,12 @@
       <ul class="collapsible black-text">
         {% for day in days %}
           <li class="col s12 m3">
-            <div class="collapsible-header">{{day.day_no}}</div>
+            <div class="collapsible-header">{{day.day_serial}}</div>
             <div class="collapsible-body">
-              {% if daysdata[day.day_no]['activities'] %}
-                {{daysdata[day.day_no]['activities']}}
+              {% if daysdata[day.day_serial]['activities'] %}
+                {{daysdata[day.day_serial]['activities']}}
               {% else %}
-                <p>Add activities</p>
+                <a href="{{url_for('farm.record_activities', farm_name=session['farm_name'], house_name=crop.house_name, crop_no=crop.crop_no, day_serial=day.day_serial)}}" class="btn">Update</a>
               {% endif %}
             </div>
           </li>
@@ -42,12 +42,12 @@
       <ul class="collapsible black-text">
         {% for day in days %}
           <li class="col s12 m3">
-            <div class="collapsible-header">{{day.day_no}}</div>
+            <div class="collapsible-header">{{day.day_serial}}</div>
             <div class="collapsible-body">
-              {% if daysdata[day.day_no]['condition'] %}
-                {{daysdata[day.day_no]['condition']}}
+              {% if daysdata[day.day_serial]['condition'] %}
+                {{daysdata[day.day_serial]['condition']}}
               {% else %}
-                <p>Add condition</p>
+                <a href="{{url_for('farm.record_condition', farm_name=session['farm_name'], house_name=crop.house_name, crop_no=crop.crop_no, day_serial=day.day_serial)}}" class="btn">Update</a>
               {% endif %}
             </div>
           </li>
@@ -63,12 +63,12 @@
       <ul class="collapsible black-text">
         {% for day in days %}
           <li class="col s12 m3">
-            <div class="collapsible-header">{{day.day_no}}</div>
+            <div class="collapsible-header">{{day.day_serial}}</div>
             <div class="collapsible-body">
-              {% if daysdata[day.day_no]['harvest'] %}
-                {{daysdata[day.day_no]['harvest']}}
+              {% if daysdata[day.day_serial]['harvest'] %}
+                {{daysdata[day.day_serial]['harvest']}}
               {% else %}
-                <p>Add harvest</p>
+                <a href="{{url_for('farm.record_harvest', farm_name=session['farm_name'], house_name=crop.house_name, crop_no=crop.crop_no, day_serial=day.day_serial)}}" class="btn">Update</a>
               {% endif %}
             </div>
           </li>

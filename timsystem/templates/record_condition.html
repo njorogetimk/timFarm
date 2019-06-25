@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+{% from 'includes/_formhelpers.html' import render_field %}
+  <section class="section">
+    <div class="container teal">
+      <h4>House: {{crop.house_name}}</h4>
+      <h5>Day: {{day.day_serial}}</h5>
+      <h6>Update the condition records</h6>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container teal">
+      <h5>Condition Section</h5>
+      <form action="{{url_for('farm.record_condition', farm_name=session['farm_name'], house_name=crop.house_name, crop_no=crop.crop_no, day_serial=day.day_serial)}}" method="post" class="condition">
+        <div class="row">
+          <div class="input-field col s12 m6">
+            {{render_field(form.temperature, class_='validate')}}
+          </div>
+          <div class="input-field col s12 m6">
+            {{render_field(form.humidity, class_='validate')}}
+          </div>
+          <div class="input-field col s12 m6">
+            {{render_field(form.time, class_='timepicker, ')}}
+          </div>
+          <div class="col s12">
+            <button type="submit" name="" class="btn">Update</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </section>
+{% endblock %}
+
+{% block scripting %}
+{% endblock %}
