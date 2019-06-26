@@ -7,10 +7,35 @@ from timsystem.farm.models import Farm, Users, House, Crop
 from timsystem.farm.models import Day, Activities, Harvest, Condition
 from timsystem import db, app
 from timsystem.farm import daycheck as dayGiver
+from functools import wraps
 import os
 
 
 farm = Blueprint('farm', __name__)
+
+
+#Check if signed in
+def is_signedin(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if  session['signed_in']:
+            return f(*args, **kwargs)
+        else:
+            flash('Please signin', 'danger')
+            return redirect(url_for('farm.signin'))
+    return wrap
+
+
+# Check if administrator in
+def is_admin(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if 'Admin' in session:
+            return f(*args, **kwargs)
+        else:
+            flash('Unauthorized!!!', 'danger')
+            return redirect(url_for('farm.signin'))
+    return wrap
 
 
 @farm.route('/')
@@ -139,6 +164,7 @@ def signin():
             flash('Wrong password', 'danger')
             return render_template('signin.html')
         else:
+            session['signed_in'] = True
             session['farm_name'] = farm_name
             session['username'] = username
             if user.level == 'Admin':
@@ -163,7 +189,13 @@ class HouseName(Form):
     ])
 # Dashboard
 @farm.route('/<farm_name>/admin-dashboard')
+@is_admin
 def admin(farm_name):
+    app.logger.info(session['farm_name'])
+    app.logger.info(farm_name!=session['farm_name'])
+    if farm_name != session['farm_name']:
+        flash('Unauthorized!!', 'danger')
+        return redirect(url_for('farm.signin'))
     form = HouseName(request.form)
     # Get the houses belonging to the farm
     farm = Farm.query.filter_by(farm_name=farm_name).first()
@@ -176,7 +208,11 @@ def admin(farm_name):
 
 # Display the house
 @farm.route('/<farm_name>/<house_name>/house')
+@is_admin
 def disp_house(farm_name, house_name):
+    if farm_name != session['farm_name']:
+        flash('Unauthorized!!', 'danger')
+        return redirect(url_for('farm.signout'))
     farm = Farm.query.filter_by(farm_name=farm_name).first()
     if not farm:
         flash('Please register your farm %s' % farm_name, 'danger')
@@ -194,7 +230,11 @@ def disp_house(farm_name, house_name):
 
 # Add a house
 @farm.route('/<farm_name>/add/house', methods=['POST', 'GET'])
+@is_admin
 def add_house(farm_name):
+    if farm_name != session['farm_name']:
+        flash('Unauthorized!!', 'danger')
+        return redirect(url_for('farm.signout'))
     form = HouseName(request.form)
     if request.method == 'POST' and form.validate():
         house_name = form.house_name.data
@@ -217,7 +257,11 @@ def add_house(farm_name):
 
 # Display a crop
 @farm.route('/<farm_name>/<house_name>/crop/<crop_no>')
+@is_signedin
 def disp_crop(farm_name, house_name, crop_no):
+    if farm_name != session['farm_name']:
+        flash('Unauthorized!!', 'danger')
+        return redirect(url_for('farm.signout'))
     # Query the crop number
     farm = Farm.query.filter_by(farm_name=farm_name).first()
     if not farm:
@@ -271,7 +315,11 @@ class CropForm(Form):
 
 # Add a crop
 @farm.route('/<farm_name>/<house_name>/add/crop', methods=['GET', 'POST'])
+@is_admin
 def add_crop(farm_name, house_name):
+    if farm_name != session['farm_name']:
+        flash('Unauthorized!!', 'danger')
+        return redirect(url_for('farm.signout'))
     form = CropForm(request.form)
     farm = Farm.query.filter_by(farm_name=farm_name).first()
     if not farm:
@@ -306,7 +354,11 @@ def add_crop(farm_name, house_name):
 
 
 @farm.route('/<farm_name>/<house_name>/<crop_no>/add/day', methods=['POST'])
+@is_admin
 def add_day(farm_name, house_name, crop_no):
+    if farm_name != session['farm_name']:
+        flash('Unauthorized!!', 'danger')
+        return redirect(url_for('farm.signout'))
     farm = Farm.query.filter_by(farm_name=farm_name).first()
     if not farm:
         flash('Please register your farm %s' % farm_name, 'danger')
@@ -362,7 +414,11 @@ class HarvForm(Form):
 
 @farm.route('/<farm_name>/<house_name>/<crop_no>/<day_serial>/record', methods=[
     'POST', 'GET'])
+@is_signedin
 def record(farm_name, house_name, crop_no, day_serial):
+    if farm_name != session['farm_name']:
+        flash('Unauthorized!!', 'danger')
+        return redirect(url_for('farm.signout'))
     hvForm = HarvForm(request.form)
     cdnForm = CondtForm(request.form)
     actvForm = ActvForm(request.form)
@@ -387,7 +443,11 @@ def record(farm_name, house_name, crop_no, day_serial):
 
 
 @farm.route('/<farm_name>/<house_name>/<crop_no>/<day_serial>/record/activities', methods=['POST', 'GET'])
+@is_signedin
 def record_activities(farm_name, house_name, crop_no, day_serial):
+    if farm_name != session['farm_name']:
+        flash('Unauthorized!!', 'danger')
+        return redirect(url_for('farm.signout'))
     form = ActvForm(request.form)
     farm = Farm.query.filter_by(farm_name=farm_name).first()
     if not farm:
@@ -416,7 +476,11 @@ def record_activities(farm_name, house_name, crop_no, day_serial):
     return render_template('record_activities.html', form=form, crop=crop, day=day)
 
 @farm.route('/<farm_name>/<house_name>/<crop_no>/<day_serial>/record/condition', methods=['POST', 'GET'])
+@is_signedin
 def record_condition(farm_name, house_name, crop_no, day_serial):
+    if farm_name != session['farm_name']:
+        flash('Unauthorized!!', 'danger')
+        return redirect(url_for('farm.signout'))
     form = CondtForm(request.form)
     farm = Farm.query.filter_by(farm_name=farm_name).first()
     if not farm:
@@ -448,7 +512,11 @@ def record_condition(farm_name, house_name, crop_no, day_serial):
 
 
 @farm.route('/<farm_name>/<house_name>/<crop_no>/<day_serial>/record/harvest', methods=['POST', 'GET'])
+@is_signedin
 def record_harvest(farm_name, house_name, crop_no, day_serial):
+    if farm_name != session['farm_name']:
+        flash('Unauthorized!!', 'danger')
+        return redirect(url_for('farm.signout'))
     form = HarvForm(request.form)
     farm = Farm.query.filter_by(farm_name=farm_name).first()
     if not farm:
@@ -479,7 +547,11 @@ def record_harvest(farm_name, house_name, crop_no, day_serial):
 
 # View Users
 @farm.route('/<farm_name>/view-users')
+@is_admin
 def disp_users(farm_name):
+    if farm_name != session['farm_name']:
+        flash('Unauthorized!!', 'danger')
+        return redirect(url_for('farm.signout'))
     farm = Farm.query.filter_by(farm_name=farm_name).first()
     if not farm:
         flash('Please register your farm %s' % farm_name, 'danger')
@@ -505,7 +577,11 @@ class UserForm(Form):
 
 # Register User
 @farm.route('/<farm_name>/register-user', methods=['POST', 'GET'])
+@is_admin
 def reg_user(farm_name):
+    if farm_name != session['farm_name']:
+        flash('Unauthorized!!', 'danger')
+        return redirect(url_for('farm.signout'))
     form = UserForm(request.form)
     farm = Farm.query.filter_by(farm_name=farm_name).first()
     if not farm:
@@ -533,7 +609,11 @@ def reg_user(farm_name):
 
 # Delete User
 @farm.route('/<farm_name>/delete-user/<username>')
+@is_admin
 def del_users(farm_name, username):
+    if farm_name != session['farm_name']:
+        flash('Unauthorized!!', 'danger')
+        return redirect(url_for('farm.signout'))
     farm = Farm.query.filter_by(farm_name=farm_name).first()
     if not farm:
         flash('Please register your farm %s' % farm_name, 'danger')
@@ -550,7 +630,11 @@ def del_users(farm_name, username):
 
 # Messaging
 @farm.route('/<farm_name>/message')
+@is_admin
 def message(farm_name):
+    if farm_name != session['farm_name']:
+        flash('Unauthorized!!', 'danger')
+        return redirect(url_for('farm.signout'))
     return render_template('messaging.html')
 
 
@@ -559,7 +643,11 @@ User Routes
 """
 # Dashboard
 @farm.route('/<farm_name>/user-dashboard')
+@is_signedin
 def user_dashboard(farm_name):
+    if farm_name != session['farm_name']:
+        flash('Unauthorized!!', 'danger')
+        return redirect(url_for('farm.signout'))
     return render_template('user_dashboard.html')
 
 
@@ -568,4 +656,4 @@ def user_dashboard(farm_name):
 def signout():
     session.clear()
     # flash Signed out
-    return redirect(url_for('farm.home'))
+    return redirect(url_for('farm.signin'))

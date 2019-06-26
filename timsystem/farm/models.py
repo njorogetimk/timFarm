@@ -20,6 +20,20 @@ class Farm(db.Model):
         return '<Farm {}>'.format(self.farm_name)
 
 
+class Level(db.Model):
+    """
+    There are levels of the users.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    level = db.Column(db.String, unique=True)
+
+    def __init__(self, level):
+        self.level = level
+
+    def __repr__(self):
+        return '<Level %s>' % self.level
+
+
 class Users(db.Model):
     """
     name: Name of the user, Timothy Kinoro
@@ -32,9 +46,10 @@ class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
     username = db.Column(db.String, unique=True)
-    email = db.Column(db.String, unique=True)
+    email = db.Column(db.String)
     password = db.Column(db.String)
-    level = db.Column(db.String, unique=True)
+    Level = db.relationship('Level', backref=db.backref('users', lazy='dynamic'))
+    level = db.Column(db.String, db.ForeignKey('level.level'))
     farm = db.relationship('Farm', backref=db.backref('users', lazy='dynamic'))
     farm_name = db.Column(db.String, db.ForeignKey('farm.farm_name'))
 
@@ -43,7 +58,7 @@ class Users(db.Model):
         self.username = username
         self.email = email
         self.password = phash.hash(password)
-        self.level = level
+        self.Level = Level.query.filter_by(level=level).first()
         self.farm = Farm.query.filter_by(farm_name=farm_name).first()
 
     def authenticate(self, passw):

@@ -14,3 +14,12 @@ app.register_blueprint(farm)
 
 
 db.create_all()
+
+from timsystem.farm.models import Level
+
+if not Level.query.all():
+    admin = Level('Admin')
+    user = Level('User')
+    db.session.add(admin)
+    db.session.add(user)
+    db.session.commit()
