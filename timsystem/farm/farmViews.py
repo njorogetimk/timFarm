@@ -123,7 +123,7 @@ def registerAdmin(farm_name):
             return render_template('register_admin.html', form=form)
 
         # Check admin
-        user = farm.users.filter_by(username=username).first()
+        user = Users.query.filter_by(username=username).first()
         if not user:
             # Register admin
             newAdmin = Users(
@@ -133,9 +133,11 @@ def registerAdmin(farm_name):
             db.session.commit()
             flash('Administrator Registered!', 'success')
             return redirect(url_for('farm.signin'))
-        elif user.level == 'Admin':
+        elif user.farm_name == farm_name and user.level == 'Admin':
             flash('The admin is already registered', 'success')
             return redirect(url_for('farm.signin'))
+        else:
+            flash('The username %s is already picked' % username, 'danger')
     return render_template('register_admin.html', form=form)
 
 
@@ -592,7 +594,7 @@ def reg_user(farm_name):
         user_name = form.user_name.data
         username = form.username.data
         user_email = form.user_email.data
-        user = farm.users.filter_by(username=username).first()
+        user = Users.query.filter_by(username=username).first()
         if not user:
             # pd = os.urandom(3)
             # password = pd.hex()
@@ -603,7 +605,7 @@ def reg_user(farm_name):
             flash('New user %s created' % user_name, 'success')
             return redirect(url_for('farm.disp_users', farm_name=farm_name))
         else:
-            flash('User by the name %s exists' % username, 'danger')
+            flash('The username %s is already picked' % username, 'danger')
     return render_template('register_user.html', form=form)
 
 
