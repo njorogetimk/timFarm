@@ -36,7 +36,14 @@ def user_dashboard(farm_name):
     if farm_name != session['farm_name']:
         flash('Unauthorized!!', 'danger')
         return redirect(url_for('farm.signout'))
-    return render_template('user_dashboard.html')
+    farm = Farm.query.filter_by(farm_name=farm_name).first()
+    houses = farm.house.filter_by(status='True').all()
+    active_houses = {}
+    for house in houses:
+        crop = house.crop.filter_by(status='True').first()
+        crop_no = crop.crop_no
+        active_houses[house.house_name] = crop_no
+    return render_template('user_dashboard.html', houses=active_houses  )
 
 
 # Display a crop
