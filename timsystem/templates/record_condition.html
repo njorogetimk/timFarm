@@ -16,7 +16,7 @@
   <section class="section">
     <div class="container teal">
       <h5>Condition Section</h5>
-      <form action="{{url_for('farm.record_condition', farm_name=session['farm_name'], house_name=crop.house_name, crop_no=crop.crop_no, day_serial=day.day_serial)}}" method="post" class="condition">
+      <form action="" method="post" class="condition">
         <div class="row">
           <div class="input-field col s12 m6">
             {{render_field(form.temperature, class_='validate')}}
