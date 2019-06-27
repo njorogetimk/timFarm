@@ -39,7 +39,7 @@
                     <p>Chronicler: {{daysdata[day.day_serial]['condition'].chronicler}}</p>
                   {% endif %}
                 {% else %}
-                  <a href="{{url_for('farm.record_activities', farm_name=session['farm_name'], house_name=crop.house_name, crop_no=crop.crop_no, day_serial=day.day_serial)}}" class="btn">Update</a>
+                  <a href="{{url_for('user.record_activities', farm_name=session['farm_name'], house_name=crop.house_name, crop_no=crop.crop_no, day_serial=day.day_serial)}}" class="btn">Update</a>
                 {% endif %}
               </div>
             </li>
@@ -70,7 +70,7 @@
                     <p>Chronicler: {{daysdata[day.day_serial]['condition'].chronicler}}</p>
                   {% endif %}
                 {% else %}
-                  <a href="{{url_for('farm.record_condition', farm_name=session['farm_name'], house_name=crop.house_name, crop_no=crop.crop_no, day_serial=day.day_serial)}}" class="btn">Update</a>
+                  <a href="{{url_for('user.record_condition', farm_name=session['farm_name'], house_name=crop.house_name, crop_no=crop.crop_no, day_serial=day.day_serial)}}" class="btn">Update</a>
                 {% endif %}
               </div>
             </li>
@@ -99,7 +99,7 @@
                     <p>Chronicler: {{daysdata[day.day_serial]['condition'].chronicler}}</p>
                   {% endif %}
                 {% else %}
-                  <a href="{{url_for('farm.record_harvest', farm_name=session['farm_name'], house_name=crop.house_name, crop_no=crop.crop_no, day_serial=day.day_serial)}}" class="btn">Update</a>
+                  <a href="{{url_for('user.record_harvest', farm_name=session['farm_name'], house_name=crop.house_name, crop_no=crop.crop_no, day_serial=day.day_serial)}}" class="btn">Update</a>
                 {% endif %}
               </div>
             </li>
@@ -113,7 +113,7 @@
     <section class="section">
       <div class="container teal">
         <h5>Start a new day</h5>
-        <form action="{{url_for('farm.add_day', farm_name=session['farm_name'], house_name=crop.house_name, crop_no=crop.crop_no)}}" method="post">
+        <form action="{{url_for('admin.add_day', farm_name=session['farm_name'], house_name=crop.house_name, crop_no=crop.crop_no)}}" method="post">
           <div class="row">
             <div class="input-field col s12 m6">
               <input type="text" name="date" class="mydatepicker" id="date">

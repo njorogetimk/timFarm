@@ -1,0 +1,33 @@
+{% extends 'admin_base.html'%}
+
+
+{% block content %}
+  <section class="section">
+    <div class="container">
+      <h3>{{session['farm_name']}} Farm</h3>
+    </div>
+  </section>
+
+  <section class="section teal">
+    <div class="container white">
+      <h4>Houses</h4>
+      <table class="responsive-table">
+        <thead>
+          <tr>
+            <th>House</th>
+            <th>Active Crop</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for house in houses %}
+            <tr>
+              <td>{{house}}</td>
+              <td>{{houses[house]}}</td>
+              <td><a href="{{url_for('user.disp_crop', farm_name=session['farm_name'], house_name=house, crop_no=houses[house])}}" class="btn">Update</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}

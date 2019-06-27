@@ -8,7 +8,7 @@
       <div class="row">
         <div>
           {% if active_crop %}
-            <h5>Active Crop: <a href="{{url_for('farm.disp_crop', farm_name=session['farm_name'], house_name=house_name, crop_no=active_crop.crop_no)}}" class="btn">{{active_crop.crop_no}}</a></h5>
+            <h5>Active Crop: <a href="{{url_for('user.disp_crop', farm_name=session['farm_name'], house_name=house_name, crop_no=active_crop.crop_no)}}" class="btn">{{active_crop.crop_no}}</a></h5>
           {% else %}
             <a href="{{url_for('farm.add_crop', farm_name=session['farm_name'], house_name=house_name)}}" class="btn"><i class="material-icons">add</i> Add a new crop</a>
           {% endif %}

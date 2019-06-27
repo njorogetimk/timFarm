@@ -10,7 +10,11 @@ db = SQLAlchemy(app)
 
 migrate = Migrate(app, db)
 from timsystem.farm.farmViews import farm
+from timsystem.farm.userviews import user
+from timsystem.farm.adminviews import admin
 app.register_blueprint(farm)
+app.register_blueprint(user)
+app.register_blueprint(admin)
 
 
 db.create_all()
