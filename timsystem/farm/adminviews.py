@@ -1,12 +1,10 @@
 from flask import Blueprint, render_template, redirect, url_for, request
 from flask import session, flash
-from wtforms import Form, StringField, TextAreaField, validators
-from wtforms import IntegerField
+from wtforms import Form, StringField, validators
 from wtforms.fields.html5 import EmailField
-from timsystem.farm.models import Farm, Users, House, Crop
-from timsystem.farm.models import Day, Activities, Harvest, Condition
+from timsystem.farm.models import Farm, Users, House, Crop, Day
 from timsystem.farm import daycheck as dayGiver
-from timsystem import db, app
+from timsystem import db
 from functools import wraps
 
 
@@ -38,8 +36,6 @@ class HouseName(Form):
 @admin.route('/<farm_name>/admin-dashboard')
 @is_admin
 def farm_admin(farm_name):
-    app.logger.info(session['farm_name'])
-    app.logger.info(farm_name!=session['farm_name'])
     if farm_name != session['farm_name']:
         flash('Unauthorized!!', 'danger')
         return redirect(url_for('farm.signin'))
@@ -72,7 +68,10 @@ def disp_house(farm_name, house_name):
     # The crops should have an active or archived status
     crops = house.crop.all()
     active_crop = house.crop.filter_by(status=True).first()
-    return render_template('disp_house.html', crops=crops, active_crop=active_crop, house_name=house_name)
+    return render_template(
+        'disp_house.html', crops=crops, active_crop=active_crop,
+        house_name=house_name
+    )
 
 
 # Add a house
@@ -149,10 +148,14 @@ def add_crop(farm_name, house_name):
             db.session.add(day)
             db.session.commit()
             flash('New crop %s created' % crop_no, 'success')
-            return redirect(url_for('admin.disp_house', farm_name=farm_name, house_name=house_name))
+            return redirect(url_for(
+                'admin.disp_house', farm_name=farm_name, house_name=house_name
+            ))
         else:
             flash('The crop number %s is present' % crop_no, 'danger')
-            return redirect(url_for('admin.disp_house', farm_name=farm_name, house_name=house_name))
+            return redirect(url_for(
+                'admin.disp_house', farm_name=farm_name, house_name=house_name
+            ))
     return render_template('add_crop.html', form=form)
 
 
@@ -173,7 +176,9 @@ def add_day(farm_name, house_name, crop_no):
     crop = house.crop.filter_by(crop_no=crop_no).first()
     if not crop:
         flash('The crop %s is not present in this house' % crop_no, 'danger')
-        return redirect(url_for('admin.disp_house', farm_name=farm_name, house_name=house_name))
+        return redirect(url_for(
+            'admin.disp_house', farm_name=farm_name, house_name=house_name
+        ))
     date = request.form.get('date')
     daycheck = dayGiver.Dates(crop.start_date, date)
     day_no = str(daycheck.day_no())
@@ -184,10 +189,16 @@ def add_day(farm_name, house_name, crop_no):
         db.session.add(day)
         db.session.commit()
         flash('Day %s of crop %s started' % (day_no, crop.crop_no), 'success')
-        return redirect(url_for('user.disp_crop', farm_name=farm_name, house_name=house_name, crop_no=crop_no))
+        return redirect(url_for(
+            'user.disp_crop', farm_name=farm_name, house_name=house_name,
+            crop_no=crop_no
+        ))
     else:
         flash('The day %s is present. Update its record' % day_no, 'success')
-        return redirect(url_for('user.disp_crop', farm_name=farm_name, house_name=house_name, crop_no=crop_no))
+        return redirect(url_for(
+            'user.disp_crop', farm_name=farm_name, house_name=house_name,
+            crop_no=crop_no
+        ))
 
 
 # View Users
@@ -242,7 +253,9 @@ def reg_user(farm_name):
             # pd = os.urandom(3)
             # password = pd.hex()
             password = '123'
-            user = Users(user_name, username, user_email, password, farm_name, 'User')
+            user = Users(
+                user_name, username, user_email, password, farm_name, 'User'
+            )
             db.session.add(user)
             db.session.commit()
             flash('New user %s created' % user_name, 'success')

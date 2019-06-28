@@ -1,12 +1,9 @@
 from flask import Blueprint, render_template, redirect, url_for, request
 from flask import session, flash
-from wtforms import Form, StringField, PasswordField, TextAreaField, validators
-from wtforms import IntegerField
+from wtforms import Form, StringField, PasswordField, validators
 from wtforms.fields.html5 import EmailField
-from timsystem.farm.models import Farm, Users, House, Crop
-from timsystem.farm.models import Day, Activities, Harvest, Condition
-from timsystem import db, app
-from timsystem.farm import daycheck as dayGiver
+from timsystem.farm.models import Farm, Users
+from timsystem import db
 # import os
 
 
@@ -146,13 +143,14 @@ def signin():
             session['username'] = username
             if user.level == 'Admin':
                 session['Admin'] = True
-                return redirect(url_for('admin.farm_admin', farm_name=farm_name))
+                return redirect(url_for(
+                    'admin.farm_admin', farm_name=farm_name
+                ))
             else:
                 session['Admin'] = False
                 return redirect(url_for(
                     'user.user_dashboard', farm_name=farm_name))
     return render_template('signin.html')
-
 
 
 # Sign out route

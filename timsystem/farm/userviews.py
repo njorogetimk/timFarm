@@ -1,10 +1,9 @@
 from flask import Blueprint, render_template, redirect, url_for, request
 from flask import flash, session
-from wtforms import Form, StringField, PasswordField, TextAreaField, validators
+from wtforms import Form, StringField, TextAreaField, validators
 from wtforms import IntegerField
-from wtforms.fields.html5 import EmailField
-from timsystem.farm.models import Farm, Users, House, Crop
-from timsystem.farm.models import Day, Activities, Harvest, Condition
+from timsystem.farm.models import Farm
+from timsystem.farm.models import Activities, Harvest, Condition
 from timsystem.farm import daycheck as dayGiver
 from timsystem import db
 from functools import wraps
@@ -17,11 +16,11 @@ User Routes
 """
 
 
-#Check if signed in
+# Check if signed in
 def is_signedin(f):
     @wraps(f)
     def wrap(*args, **kwargs):
-        if  session['signed_in']:
+        if session['signed_in']:
             return f(*args, **kwargs)
         else:
             flash('Please signin', 'danger')
@@ -43,7 +42,7 @@ def user_dashboard(farm_name):
         crop = house.crop.filter_by(status='True').first()
         crop_no = crop.crop_no
         active_houses[house.house_name] = crop_no
-    return render_template('user_dashboard.html', houses=active_houses  )
+    return render_template('user_dashboard.html', houses=active_houses)
 
 
 # Display a crop
@@ -87,7 +86,10 @@ def disp_crop(farm_name, house_name, crop_no):
     day_status = crop.day.filter_by(status=True).first()
     date = dayGiver.ConvDate(crop.start_date)
     min_date = date.result()
-    return render_template('disp_crop.html', crop=crop, days=days, daysdata=daysdata, day_status=day_status, min_date=min_date)
+    return render_template(
+        'disp_crop.html', crop=crop, days=days, daysdata=daysdata,
+        day_status=day_status, min_date=min_date
+    )
 
 
 """
@@ -115,12 +117,15 @@ class CondtForm(Form):
 
 
 class HarvForm(Form):
-    punnets = IntegerField('Enter the number of punnets harvested',[
+    punnets = IntegerField('Enter the number of punnets harvested', [
         validators.DataRequired()
     ])
 
 
-@user.route('/<farm_name>/<house_name>/<crop_no>/<day_serial>/record/activities', methods=['POST', 'GET'])
+@user.route(
+    '/<farm_name>/<house_name>/<crop_no>/<day_serial>/record/activities',
+    methods=['POST', 'GET']
+)
 @is_signedin
 def record_activities(farm_name, house_name, crop_no, day_serial):
     if farm_name != session['farm_name']:
@@ -147,15 +152,25 @@ def record_activities(farm_name, house_name, crop_no, day_serial):
 
     if request.method == 'POST' and form.validate():
         description = form.description.data
-        activities = Activities(day.day_serial, description, session['username'])
+        activities = Activities(
+            day.day_serial, description, session['username']
+        )
         db.session.add(activities)
         db.session.commit()
         flash('Day %s activities updated' % day.day_no, 'success')
-        return redirect(url_for('user.disp_crop', farm_name=farm_name, house_name=house_name, crop_no=crop_no))
-    return render_template('record_activities.html', form=form, crop=crop, day=day)
+        return redirect(url_for(
+            'user.disp_crop', farm_name=farm_name, house_name=house_name,
+            crop_no=crop_no
+        ))
+    return render_template(
+        'record_activities.html', form=form, crop=crop, day=day
+    )
 
 
-@user.route('/<farm_name>/<house_name>/<crop_no>/<day_serial>/record/condition', methods=['POST', 'GET'])
+@user.route(
+    '/<farm_name>/<house_name>/<crop_no>/<day_serial>/record/condition',
+    methods=['POST', 'GET']
+)
 @is_signedin
 def record_condition(farm_name, house_name, crop_no, day_serial):
     if farm_name != session['farm_name']:
@@ -184,15 +199,25 @@ def record_condition(farm_name, house_name, crop_no, day_serial):
         temperature = form.temperature.data
         humidity = form.humidity.data
         time = form.time.data
-        condition = Condition(day.day_serial, temperature, humidity, time, session['username'])
+        condition = Condition(
+            day.day_serial, temperature, humidity, time, session['username']
+        )
         db.session.add(condition)
         db.session.commit()
         flash('Day %s condition updated' % day.day_no, 'success')
-        return redirect(url_for('user.disp_crop', farm_name=farm_name, house_name=house_name, crop_no=crop_no))
-    return render_template('record_condition.html', form=form, crop=crop, day=day)
+        return redirect(url_for(
+            'user.disp_crop', farm_name=farm_name, house_name=house_name,
+            crop_no=crop_no
+        ))
+    return render_template(
+        'record_condition.html', form=form, crop=crop, day=day
+    )
 
 
-@user.route('/<farm_name>/<house_name>/<crop_no>/<day_serial>/record/harvest', methods=['POST', 'GET'])
+@user.route(
+    '/<farm_name>/<house_name>/<crop_no>/<day_serial>/record/harvest',
+    methods=['POST', 'GET']
+)
 @is_signedin
 def record_harvest(farm_name, house_name, crop_no, day_serial):
     if farm_name != session['farm_name']:
@@ -223,5 +248,10 @@ def record_harvest(farm_name, house_name, crop_no, day_serial):
         db.session.add(harvest)
         db.session.commit()
         flash('Day %s harvest updated' % day.day_no, 'success')
-        return redirect(url_for('user.disp_crop', farm_name=farm_name, house_name=house_name, crop_no=crop_no))
-    return render_template('record_harvest.html', form=form, crop=crop, day=day)
+        return redirect(url_for(
+            'user.disp_crop', farm_name=farm_name, house_name=house_name,
+            crop_no=crop_no
+        ))
+    return render_template(
+        'record_harvest.html', form=form, crop=crop, day=day
+    )

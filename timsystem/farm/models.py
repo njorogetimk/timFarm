@@ -48,7 +48,9 @@ class Users(db.Model):
     username = db.Column(db.String, unique=True)
     email = db.Column(db.String)
     password = db.Column(db.String)
-    Level = db.relationship('Level', backref=db.backref('users', lazy='dynamic'))
+    Level = db.relationship(
+        'Level', backref=db.backref('users', lazy='dynamic')
+    )
     level = db.Column(db.String, db.ForeignKey('level.level'))
     farm = db.relationship('Farm', backref=db.backref('users', lazy='dynamic'))
     farm_name = db.Column(db.String, db.ForeignKey('farm.farm_name'))
