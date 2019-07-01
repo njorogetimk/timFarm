@@ -4,7 +4,7 @@
 {% block content %}
   <section class="section">
     <div class="container">
-      <h3>{{session['farm_name']}} Farm</h3>
+      <h3>{{current_user.farm_name}} Farm</h3>
     </div>
   </section>
 
@@ -23,7 +23,7 @@
             <tr>
               <td>{{house}}</td>
               <td>{{houses[house]}}</td>
-              <td><a href="{{url_for('user.disp_crop', farm_name=session['farm_name'], house_name=house, crop_no=houses[house])}}" class="btn">Update</a></td>
+              <td><a href="{{url_for('user.disp_crop', farm_name=current_user.farm_name, house_name=house, crop_no=houses[house])}}" class="btn">Update</a></td>
             </tr>
           {% endfor %}
         </tbody>

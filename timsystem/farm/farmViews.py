@@ -1,13 +1,25 @@
 from flask import Blueprint, render_template, redirect, url_for, request
-from flask import session, flash
+from flask import session, flash, g
+from flask_login import current_user, login_user, logout_user, login_required
 from wtforms import Form, StringField, PasswordField, validators
 from wtforms.fields.html5 import EmailField
 from timsystem.farm.models import Farm, Users
 from timsystem import db
+from timsystem import login_manager
 # import os
 
 
 farm = Blueprint('farm', __name__)
+
+
+@login_manager.user_loader
+def load_user(username):
+    return Users.query.filter_by(username=username).first()
+
+
+@farm.before_request
+def get_current_user():
+    g.user = current_user
 
 
 @farm.route('/')
@@ -115,10 +127,13 @@ def registerAdmin(farm_name):
 
 @farm.route('/signin', methods=['GET', 'POST'])
 def signin():
+    if current_user.is_authenticated:
+        flash('You are already signed in', 'success')
     if request.method == 'POST':
         farm_name = request.form.get('farm_name')
         username = request.form.get('username')
         password = request.form.get('password')
+        remember = True if request.form.get('remember') else False
 
         farm = Farm.query.filter_by(farm_name=farm_name).first()
 
@@ -138,16 +153,12 @@ def signin():
             flash('Wrong password', 'danger')
             return render_template('signin.html')
         else:
-            session['signed_in'] = True
-            session['farm_name'] = farm_name
-            session['username'] = username
+            login_user(user, remember=remember)
             if user.level == 'Admin':
-                session['Admin'] = True
                 return redirect(url_for(
                     'admin.farm_admin', farm_name=farm_name
                 ))
             else:
-                session['Admin'] = False
                 return redirect(url_for(
                     'user.user_dashboard', farm_name=farm_name))
     return render_template('signin.html')
@@ -156,6 +167,6 @@ def signin():
 # Sign out route
 @farm.route('/signout')
 def signout():
-    session.clear()
+    logout_user()
     # flash Signed out
     return redirect(url_for('farm.signin'))

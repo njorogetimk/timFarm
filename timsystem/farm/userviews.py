@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, request
-from flask import flash, session
+from flask import flash, g
+from flask_login import current_user
 from wtforms import Form, StringField, TextAreaField, validators
 from wtforms import IntegerField
 from timsystem.farm.models import Farm
@@ -11,6 +12,12 @@ from functools import wraps
 
 user = Blueprint('user', __name__)
 
+
+@user.before_request
+def get_current_user():
+    g.user = current_user
+
+
 """
 User Routes
 """
@@ -20,10 +27,10 @@ User Routes
 def is_signedin(f):
     @wraps(f)
     def wrap(*args, **kwargs):
-        if session['signed_in']:
+        if current_user.is_active:
             return f(*args, **kwargs)
         else:
-            flash('Please signin', 'danger')
+            flash('Please sign in', 'danger')
             return redirect(url_for('farm.signin'))
     return wrap
 
@@ -32,7 +39,7 @@ def is_signedin(f):
 @user.route('/<farm_name>/user-dashboard')
 @is_signedin
 def user_dashboard(farm_name):
-    if farm_name != session['farm_name']:
+    if farm_name != current_user.farm_name:
         flash('Unauthorized!!', 'danger')
         return redirect(url_for('farm.signout'))
     farm = Farm.query.filter_by(farm_name=farm_name).first()
@@ -49,7 +56,7 @@ def user_dashboard(farm_name):
 @user.route('/<farm_name>/<house_name>/crop/<crop_no>')
 @is_signedin
 def disp_crop(farm_name, house_name, crop_no):
-    if farm_name != session['farm_name']:
+    if farm_name != current_user.farm_name:
         flash('Unauthorized!!', 'danger')
         return redirect(url_for('farm.signout'))
     # Query the crop number
@@ -128,7 +135,7 @@ class HarvForm(Form):
 )
 @is_signedin
 def record_activities(farm_name, house_name, crop_no, day_serial):
-    if farm_name != session['farm_name']:
+    if farm_name != current_user.farm_name:
         flash('Unauthorized!!', 'danger')
         return redirect(url_for('farm.signout'))
     form = ActvForm(request.form)
@@ -153,7 +160,7 @@ def record_activities(farm_name, house_name, crop_no, day_serial):
     if request.method == 'POST' and form.validate():
         description = form.description.data
         activities = Activities(
-            day.day_serial, description, session['username']
+            day.day_serial, description, current_user.username
         )
         db.session.add(activities)
         db.session.commit()
@@ -173,7 +180,7 @@ def record_activities(farm_name, house_name, crop_no, day_serial):
 )
 @is_signedin
 def record_condition(farm_name, house_name, crop_no, day_serial):
-    if farm_name != session['farm_name']:
+    if farm_name != current_user.farm_name:
         flash('Unauthorized!!', 'danger')
         return redirect(url_for('farm.signout'))
     form = CondtForm(request.form)
@@ -200,7 +207,7 @@ def record_condition(farm_name, house_name, crop_no, day_serial):
         humidity = form.humidity.data
         time = form.time.data
         condition = Condition(
-            day.day_serial, temperature, humidity, time, session['username']
+            day.day_serial, temperature, humidity, time, current_user.username
         )
         db.session.add(condition)
         db.session.commit()
@@ -220,7 +227,7 @@ def record_condition(farm_name, house_name, crop_no, day_serial):
 )
 @is_signedin
 def record_harvest(farm_name, house_name, crop_no, day_serial):
-    if farm_name != session['farm_name']:
+    if farm_name != current_user.farm_name:
         flash('Unauthorized!!', 'danger')
         return redirect(url_for('farm.signout'))
     form = HarvForm(request.form)
@@ -244,7 +251,7 @@ def record_harvest(farm_name, house_name, crop_no, day_serial):
 
     if request.method == 'POST' and form.validate():
         punnets = form.punnets.data
-        harvest = Harvest(day.day_serial, punnets, session['username'])
+        harvest = Harvest(day.day_serial, punnets, current_user.username)
         db.session.add(harvest)
         db.session.commit()
         flash('Day %s harvest updated' % day.day_no, 'success')

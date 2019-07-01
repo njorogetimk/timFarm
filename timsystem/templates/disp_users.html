@@ -3,7 +3,7 @@
 {% block content %}
 <section class="section">
   <div class="container">
-    <h4>{{session['farm_name']}} farm</h4>
+    <h4>{{current_user.farm_name}} farm</h4>
     <p>Display the users present in the fam you administer</p>
   </div>
 </section>
@@ -26,7 +26,7 @@
             <td>{{user.level}}</td>
             <td>
               {% if user.level == 'User' %}
-                <a href="{{url_for('admin.del_users', farm_name=session['farm_name'], username=user.username)}}" class="btn">Remove</a>
+                <a href="{{url_for('admin.del_users', farm_name=current_user.farm_name, username=user.username)}}" class="btn">Remove</a>
               {% endif %}
             </td>
           </tr>
@@ -35,7 +35,7 @@
     </table>
     {% for user in users %}
     {% endfor %}
-    <a href="{{url_for('admin.reg_user', farm_name=session['farm_name'])}}" class="btn">Register a new user</a>
+    <a href="{{url_for('admin.reg_user', farm_name=current_user.farm_name)}}" class="btn">Register a new user</a>
   </div>
 </section>
 
