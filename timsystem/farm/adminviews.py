@@ -25,7 +25,7 @@ def get_current_user():
 def is_admin(f):
     @wraps(f)
     def wrap(*args, **kwargs):
-        if current_user.is_active and current_user.level=='Admin':
+        if current_user.is_active and current_user.level == 'Admin':
             return f(*args, **kwargs)
         else:
             flash('Unauthorized!!!', 'danger')

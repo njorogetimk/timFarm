@@ -59,8 +59,8 @@ def registerFarm():
             newFarm = Farm(farm_name, farm_email)
             db.session.add(newFarm)
             db.session.commit()
-            flash('New farm %s created' % (farm_name), 'success')
-            return redirect(url_for('farm.registerAdmin', farm_name=farm_name))
+            flash('Registration request of %s has been recieved. Check your email for the verification link' % (farm_name), 'success')
+            return redirect(url_for('farm.home'))
         else:
             flash('The farm name %s taken' % farm_name, 'danger')
             # return redirect(url_for('farm.registerFarm'))
@@ -75,10 +75,6 @@ class RegisterAdmin(Form):
     username = StringField('Username', [
         validators.DataRequired(),
         validators.length(min=3, max=20)
-    ])
-    admin_email = EmailField('Email', [
-        validators.DataRequired(),
-        validators.Email()
     ])
     # phone_no = IntegerField('Phone Number', [
     #     validators.DataRequired()
@@ -96,7 +92,6 @@ def registerAdmin(farm_name):
     if request.method == 'POST' and form.validate():
         admin_name = form.admin_name.data
         username = form.username.data
-        admin_email = form.admin_email.data
         # phone_no = form.phone_no.data
         password = form.password.data
 
@@ -110,6 +105,8 @@ def registerAdmin(farm_name):
         user = Users.query.filter_by(username=username).first()
         if not user:
             # Register admin
+            farm = Farm.query.filter_by(farm_name=farm_name).first()
+            admin_email = farm.farm_email
             newAdmin = Users(
                 admin_name, username, admin_email, password, farm_name, 'Admin'
                 )
@@ -141,10 +138,25 @@ def signin():
             flash('The farm %s is not registered' % farm_name, 'danger')
             return render_template('signin.html')
 
+        if not farm.confirmed:
+            flash(
+                'Your farm registration is due. Please check your email for the confirmation link',
+                'danger'
+            )
+            return render_template('signin.html')
+
         user = farm.users.filter_by(username=username).first()
+
         if not user:
             flash('The username %s is not registered in the farm %s' % (
                 username, farm_name), 'danger')
+            return render_template('signin.html')
+
+        if not user.confirmed:
+            flash(
+                'Your email verification is pending. Please check your email for activation',
+                'danger'
+            )
             return render_template('signin.html')
 
         auth = user.authenticate(password)

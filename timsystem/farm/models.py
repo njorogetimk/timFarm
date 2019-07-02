@@ -3,6 +3,38 @@ from passlib.hash import pbkdf2_sha256 as phash
 from datetime import datetime as dt
 
 
+class Administrator(db.Model):
+    """
+    Njoroges Farm Administrator
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String)
+    password = db.Column(db.String)
+
+    def __init__(self, username, password):
+        self.username = username
+        self.password = phash.hash(password)
+
+    def authenticate(self, passw):
+        """
+        Authenticate Administrator
+        """
+        verified = phash.verify(passw, self.password)
+        return verified
+
+    def is_authenticated(self):
+        return True
+
+    def is_active(self):
+        return True
+
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        return self.username
+
+
 class Farm(db.Model):
     """
     farm_name: Name of the farm
@@ -11,10 +43,20 @@ class Farm(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     farm_name = db.Column(db.String, unique=True)
     farm_email = db.Column(db.String)
+    confirmed = db.Column(db.Boolean)
+    pending = db.Column(db.Boolean)
 
-    def __init__(self, farm_name, farm_email):
+    def __init__(self, farm_name, farm_email, confirmed=False, pending=False):
         self.farm_name = farm_name
         self.farm_email = farm_email
+        self.confirmed = confirmed
+        self.pending = pending
+
+    def pend(self):
+        self.pending = True
+
+    def confirm(self):
+        self.confirmed = True
 
     def __repr__(self):
         return '<Farm {}>'.format(self.farm_name)
@@ -48,6 +90,7 @@ class Users(db.Model):
     username = db.Column(db.String, unique=True)
     email = db.Column(db.String)
     password = db.Column(db.String)
+    confirmed = db.Column(db.Boolean)
     Level = db.relationship(
         'Level', backref=db.backref('users', lazy='dynamic')
     )
@@ -55,13 +98,20 @@ class Users(db.Model):
     farm = db.relationship('Farm', backref=db.backref('users', lazy='dynamic'))
     farm_name = db.Column(db.String, db.ForeignKey('farm.farm_name'))
 
-    def __init__(self, name, username, email, password, farm_name, level):
+    def __init__(
+        self, name, username, email, password, farm_name, level,
+        confirmed=False
+    ):
         self.name = name
         self.username = username
         self.email = email
         self.password = phash.hash(password)
+        self.confirmed = confirmed
         self.Level = Level.query.filter_by(level=level).first()
         self.farm = Farm.query.filter_by(farm_name=farm_name).first()
+
+    def confirm(self):
+        self.confirmed = True
 
     def authenticate(self, passw):
         """

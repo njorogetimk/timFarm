@@ -18,9 +18,11 @@ login_manager.init_app(app)
 from timsystem.farm.farmViews import farm
 from timsystem.farm.userviews import user
 from timsystem.farm.adminviews import admin
+from timsystem.farm.administrator import administor
 app.register_blueprint(farm)
 app.register_blueprint(user)
 app.register_blueprint(admin)
+app.register_blueprint(administor)
 
 
 db.create_all()
