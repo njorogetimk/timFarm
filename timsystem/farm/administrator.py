@@ -22,9 +22,11 @@ def farm_activate(farm_name):
     # Send activation link
     token = gen_confirm_token(farm_name, farm.farm_email)
     confirm_url = url_for(
-        'farm.confirm_farm_email', token=token, _external=True
+        'farm.confirm_farm_token', token=token, _external=True
     )
-    html = render_template('activate.html', confirm_url=confirm_url)
+    html = render_template(
+        'activate.html', confirm_url=confirm_url, admin=True
+    )
     subject = 'Confirm Your Email'
     send_email(farm.farm_email, subject, html)
 

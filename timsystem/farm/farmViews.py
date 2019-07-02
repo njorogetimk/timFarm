@@ -91,7 +91,7 @@ class RegisterAdmin(Form):
 
 
 @farm.route('/confirm/farm/<token>')
-def confirm_farm_email(token):
+def confirm_farm_token(token):
     try:
         farm_name, farm_email = confirm_token(token)
     except Exception:
@@ -107,6 +107,26 @@ def confirm_farm_email(token):
         db.session.commit()
         flash('Account successfully confirmed', 'success')
     return redirect(url_for('farm.registerAdmin', farm_name=farm_name))
+
+
+@farm.route('/confirm/user/<token>')
+def confirm_user_token(token):
+    try:
+        farm_name, username = confirm_token(token)
+    except Exception:
+        flash('Invalid or expired confirmation link', 'danger')
+        return redirect(url_for('farm.home'))
+
+    farm = Farm.query.filter_by(farm_name=farm_name).first()
+    user = farm.users.filter_by(username=username).first()
+    if user.confirmed:
+        flash('Account already confirmed', 'success')
+    else:
+        user.confirmed = True
+        db.session.add(user)
+        db.session.commit()
+        flash('Account successfully activated', 'success')
+    return redirect(url_for('user.user_dashboard', farm_name=farm.farm_name))
 
 
 @farm.route('/register-admin/<farm_name>', methods=['POST', 'GET'])

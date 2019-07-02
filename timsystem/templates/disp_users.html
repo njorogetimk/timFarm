@@ -16,6 +16,7 @@
           <th>Name</th>
           <th>Username</th>
           <th>Level</th>
+          <th>Status</th>
         </tr>
       </thead>
       <tbody>
@@ -24,6 +25,13 @@
             <td>{{user.name}}</td>
             <td>{{user.username}}</td>
             <td>{{user.level}}</td>
+            <td>
+              {% if user.confirmed %}
+                Active
+              {% else %}
+                Inactive
+              {% endif %}
+            </td>
             <td>
               {% if user.level == 'User' %}
                 <a href="{{url_for('admin.del_users', farm_name=current_user.farm_name, username=user.username)}}" class="btn">Remove</a>

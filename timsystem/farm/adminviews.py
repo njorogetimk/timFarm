@@ -4,6 +4,8 @@ from flask_login import current_user
 from wtforms import Form, StringField, validators
 from wtforms.fields.html5 import EmailField
 from timsystem.farm.models import Farm, Users, House, Crop, Day
+from timsystem.farm.email import send_email
+from timsystem.farm.token import gen_confirm_token
 from timsystem.farm import daycheck as dayGiver
 from timsystem import db
 from functools import wraps
@@ -264,6 +266,18 @@ def reg_user(farm_name):
             )
             db.session.add(user)
             db.session.commit()
+
+            token = gen_confirm_token(farm_name, username)
+            confirm_url = url_for(
+                'farm.confirm_user_token', token=token, _external=True
+            )
+            html = render_template(
+                'activate.html', confirm_url=confirm_url, admin=False,
+                farm=farm
+            )
+            subject = 'Activate Your Account'
+            send_email(user_email, subject, html)
+
             flash('New user %s created' % user_name, 'success')
             return redirect(url_for('admin.disp_users', farm_name=farm_name))
         else:
