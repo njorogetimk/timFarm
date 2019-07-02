@@ -1,15 +1,13 @@
 from flask import Blueprint, render_template, redirect, url_for
 from flask import flash
+from flask_mail import Message
 from timsystem.farm.models import Farm
-from timsystem import db
+from timsystem.farm.email import send_email
+from timsystem.farm.token import gen_confirm_token
+from timsystem import db, mail
 
 
 administor = Blueprint('administor', __name__)
-
-
-# @administor.route('/admin-farm')
-# def admin():
-#     return render_template('admin_sign.html')
 
 
 @administor.route('/farmAdministor')
@@ -18,16 +16,18 @@ def administrator():
     return render_template('admin_home.html', farms=farms)
 
 
-# @administor.route('/requests')
-# def requests():
-#     farms = Farm.query.filter_by(confirmed=False).all()
-#     return render_template('reg_request.html', farms=farms)
-
-
 @administor.route('/activateFarm/<farm_name>')
 def farm_activate(farm_name):
-    # Send activation link
     farm = Farm.query.filter_by(farm_name=farm_name).first()
+    # Send activation link
+    token = gen_confirm_token(farm_name, farm.farm_email)
+    confirm_url = url_for(
+        'farm.confirm_farm_email', token=token, _external=True
+    )
+    html = render_template('activate.html', confirm_url=confirm_url)
+    subject = 'Confirm Your Email'
+    send_email(farm.farm_email, subject, html)
+
     farm.pending = True
     db.session.add(farm)
     db.session.commit()
@@ -46,4 +46,8 @@ def farm_reject(farm_name):
 
 @administor.route('/emails')
 def comm():
-    return 'communicate'
+    ml = ['timdevtesting@gmail.com']
+    msg = Message('Testing', recipients=ml)
+    msg.body = 'Testing flask mail'
+    mail.send(msg)
+    return redirect(url_for('administor.administrator'))

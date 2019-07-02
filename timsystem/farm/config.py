@@ -2,9 +2,16 @@ import os
 
 
 class Base():
-    SECRET_KEY = 'c9b06027439ee6061004a982b41a714965cad7534a7b40f7'
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    Kkey = 'c9b06027439ee6061004a982b41a714965cad7534a7b40f7'
+    SECRET_KEY = os.environ.get('SECRET_KEY') or Kkey
     WTF_CRFS_SECRET_KEY = SECRET_KEY
+
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    MAIL_SERVER = 'smtp.gmail.com'
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
+    MAIL_USE_SSL = False
 
 
 class Dev(Base):
@@ -15,9 +22,16 @@ class Dev(Base):
     dbase = '/timfarm'
     SQLALCHEMY_DATABASE_URI = protocol+password+host+dbase
 
+    MAIL_USERNAME = 'timdevtesting@gmail.com'
+    MAIL_PASSWORD = 'enterinto'
+    MAIL_DEFAULT_SENDER = ('timsystem', MAIL_USERNAME)
 
-class Production():
+
+class Production(Base):
     DEBUG = False
-    SECRET_KEY = os.environ.get('SECRET_KEY')
+    # SECRET_KEY = os.environ.get('SECRET_KEY')
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URI')
-    WTF_CRFS_SECRET_KEY = SECRET_KEY
+    # WTF_CRFS_SECRET_KEY = SECRET_KEY
+
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')

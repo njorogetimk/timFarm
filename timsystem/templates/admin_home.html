@@ -20,7 +20,7 @@
               <td>{{farm.farm_email}}</td>
               {% if not farm.pending %}
                 <td><a href="{{url_for('administor.farm_activate', farm_name=farm.farm_name)}}" class="btn">Activate</a></td>
-                <td><a href="" class="btn">Reject</a></td>
+                <td><a href="{{url_for('administor.farm_reject', farm_name=farm.farm_name)}}" class="btn">Reject</a></td>
               {% else %}
                 <td><a href="" class="btn disabled">Pending</a></td>
                 <td><a href="" class="btn disabled">Reject</a></td>

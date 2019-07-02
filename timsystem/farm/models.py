@@ -52,9 +52,6 @@ class Farm(db.Model):
         self.confirmed = confirmed
         self.pending = pending
 
-    def pend(self):
-        self.pending = True
-
     def confirm(self):
         self.confirmed = True
 

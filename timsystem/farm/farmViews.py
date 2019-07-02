@@ -1,9 +1,10 @@
 from flask import Blueprint, render_template, redirect, url_for, request
-from flask import session, flash, g
-from flask_login import current_user, login_user, logout_user, login_required
+from flask import flash, g
+from flask_login import current_user, login_user, logout_user
 from wtforms import Form, StringField, PasswordField, validators
 from wtforms.fields.html5 import EmailField
 from timsystem.farm.models import Farm, Users
+from timsystem.farm.token import confirm_token
 from timsystem import db
 from timsystem import login_manager
 # import os
@@ -59,7 +60,10 @@ def registerFarm():
             newFarm = Farm(farm_name, farm_email)
             db.session.add(newFarm)
             db.session.commit()
-            flash('Registration request of %s has been recieved. Check your email for the verification link' % (farm_name), 'success')
+
+            flash(
+                'Registration request of %s has been recieved. Check your email for the verification link' % (farm_name), 'success'
+            )
             return redirect(url_for('farm.home'))
         else:
             flash('The farm name %s taken' % farm_name, 'danger')
@@ -86,6 +90,25 @@ class RegisterAdmin(Form):
     confirm = PasswordField('Confirm Password')
 
 
+@farm.route('/confirm/farm/<token>')
+def confirm_farm_email(token):
+    try:
+        farm_name, farm_email = confirm_token(token)
+    except Exception:
+        flash('Invalid or expired confirmation link', 'danger')
+        return redirect(url_for('farm.home'))
+
+    farm = Farm.query.filter_by(farm_name=farm_name).first()
+    if farm.confirmed:
+        flash('Account already confirmed', 'success')
+    else:
+        farm.confirmed = True
+        db.session.add(farm)
+        db.session.commit()
+        flash('Account successfully confirmed', 'success')
+    return redirect(url_for('farm.registerAdmin', farm_name=farm_name))
+
+
 @farm.route('/register-admin/<farm_name>', methods=['POST', 'GET'])
 def registerAdmin(farm_name):
     form = RegisterAdmin(request.form)
@@ -108,7 +131,8 @@ def registerAdmin(farm_name):
             farm = Farm.query.filter_by(farm_name=farm_name).first()
             admin_email = farm.farm_email
             newAdmin = Users(
-                admin_name, username, admin_email, password, farm_name, 'Admin'
+                admin_name, username, admin_email, password, farm_name,
+                'Admin', confirmed=True
                 )
             db.session.add(newAdmin)
             db.session.commit()
