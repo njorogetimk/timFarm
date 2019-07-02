@@ -1,0 +1,35 @@
+{% extends 'administrator.html' %}
+
+
+{% block content %}
+  <section class="section">
+    <div class="container">
+      <h4>Farm Requests</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>Farm Name</th>
+            <th>Farm Email</th>
+            <th>Activation</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for farm in farms %}
+            <tr>
+              <td>{{farm.farm_name}}</td>
+              <td>{{farm.farm_email}}</td>
+              {% if not farm.pending %}
+                <td><a href="{{url_for('administor.farm_activate', farm_name=farm.farm_name)}}" class="btn">Activate</a></td>
+                <td><a href="{{url_for('administor.farm_reject', farm_name=farm.farm_name)}}" class="btn">Reject</a></td>
+              {% else %}
+                <td><a href="" class="btn disabled">Pending</a></td>
+                <td><a href="{{url_for('administor.farm_reject', farm_name=farm.farm_name)}}" class="btn">Reject</a></td>
+                <td><a href="{{url_for('administor.farm_activate', farm_name=farm.farm_name)}}" class="btn">Resend Link</a></td>
+              {% endif %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}

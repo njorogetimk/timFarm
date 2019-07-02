@@ -1,9 +1,10 @@
 from flask import Blueprint, render_template, redirect, url_for, request
-from flask import session, flash, g
-from flask_login import current_user, login_user, logout_user, login_required
+from flask import flash, g
+from flask_login import current_user, login_user, logout_user
 from wtforms import Form, StringField, PasswordField, validators
 from wtforms.fields.html5 import EmailField
 from timsystem.farm.models import Farm, Users
+from timsystem.farm.token import confirm_token
 from timsystem import db
 from timsystem import login_manager
 # import os
@@ -59,8 +60,11 @@ def registerFarm():
             newFarm = Farm(farm_name, farm_email)
             db.session.add(newFarm)
             db.session.commit()
-            flash('New farm %s created' % (farm_name), 'success')
-            return redirect(url_for('farm.registerAdmin', farm_name=farm_name))
+
+            flash(
+                'Registration request of %s has been recieved. Check your email for the verification link' % (farm_name), 'success'
+            )
+            return redirect(url_for('farm.home'))
         else:
             flash('The farm name %s taken' % farm_name, 'danger')
             # return redirect(url_for('farm.registerFarm'))
@@ -76,10 +80,6 @@ class RegisterAdmin(Form):
         validators.DataRequired(),
         validators.length(min=3, max=20)
     ])
-    admin_email = EmailField('Email', [
-        validators.DataRequired(),
-        validators.Email()
-    ])
     # phone_no = IntegerField('Phone Number', [
     #     validators.DataRequired()
     # ])
@@ -90,13 +90,51 @@ class RegisterAdmin(Form):
     confirm = PasswordField('Confirm Password')
 
 
+@farm.route('/confirm/farm/<token>')
+def confirm_farm_token(token):
+    try:
+        farm_name, farm_email = confirm_token(token)
+    except Exception:
+        flash('Invalid or expired confirmation link', 'danger')
+        return redirect(url_for('farm.home'))
+
+    farm = Farm.query.filter_by(farm_name=farm_name).first()
+    if farm.confirmed:
+        flash('Account already confirmed', 'success')
+    else:
+        farm.confirmed = True
+        db.session.add(farm)
+        db.session.commit()
+        flash('Account successfully confirmed', 'success')
+    return redirect(url_for('farm.registerAdmin', farm_name=farm_name))
+
+
+@farm.route('/confirm/user/<token>')
+def confirm_user_token(token):
+    try:
+        farm_name, username = confirm_token(token)
+    except Exception:
+        flash('Invalid or expired confirmation link', 'danger')
+        return redirect(url_for('farm.home'))
+
+    farm = Farm.query.filter_by(farm_name=farm_name).first()
+    user = farm.users.filter_by(username=username).first()
+    if user.confirmed:
+        flash('Account already confirmed', 'success')
+    else:
+        user.confirmed = True
+        db.session.add(user)
+        db.session.commit()
+        flash('Account successfully activated', 'success')
+    return redirect(url_for('user.user_dashboard', farm_name=farm.farm_name))
+
+
 @farm.route('/register-admin/<farm_name>', methods=['POST', 'GET'])
 def registerAdmin(farm_name):
     form = RegisterAdmin(request.form)
     if request.method == 'POST' and form.validate():
         admin_name = form.admin_name.data
         username = form.username.data
-        admin_email = form.admin_email.data
         # phone_no = form.phone_no.data
         password = form.password.data
 
@@ -110,8 +148,11 @@ def registerAdmin(farm_name):
         user = Users.query.filter_by(username=username).first()
         if not user:
             # Register admin
+            farm = Farm.query.filter_by(farm_name=farm_name).first()
+            admin_email = farm.farm_email
             newAdmin = Users(
-                admin_name, username, admin_email, password, farm_name, 'Admin'
+                admin_name, username, admin_email, password, farm_name,
+                'Admin', confirmed=True
                 )
             db.session.add(newAdmin)
             db.session.commit()
@@ -141,10 +182,25 @@ def signin():
             flash('The farm %s is not registered' % farm_name, 'danger')
             return render_template('signin.html')
 
+        if not farm.confirmed:
+            flash(
+                'Your farm registration is due. Please check your email for the confirmation link',
+                'danger'
+            )
+            return render_template('signin.html')
+
         user = farm.users.filter_by(username=username).first()
+
         if not user:
             flash('The username %s is not registered in the farm %s' % (
                 username, farm_name), 'danger')
+            return render_template('signin.html')
+
+        if not user.confirmed:
+            flash(
+                'Your email verification is pending. Please check your email for activation',
+                'danger'
+            )
             return render_template('signin.html')
 
         auth = user.authenticate(password)
