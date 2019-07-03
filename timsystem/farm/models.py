@@ -10,10 +10,12 @@ class Administrator(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String)
     password = db.Column(db.String)
+    top_level = db.Column(db.Boolean)
 
-    def __init__(self, username, password):
+    def __init__(self, username, password, top_level=True):
         self.username = username
         self.password = phash.hash(password)
+        self.top_level = top_level
 
     def authenticate(self, passw):
         """

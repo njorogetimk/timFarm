@@ -10,33 +10,33 @@
     <!--Let browser know website is optimized for mobile-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta charset="utf-8">
-    <title>The Njoroges Farm Administrator</title>
+    <title>Silence</title>
   </head>
   <body>
-    <header>
-      <nav class="teal">
-        <div class="nav-wrapper">
-          <a href="{{url_for('administor.administrator')}}" class="brand-logo">Logo</a>
-          <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
-          <ul class="right hide-on-med-and-down">
-            <li><a href="{{url_for('farm.signout')}}">Sign out</a></li>
-          </ul>
-        </div>
-      </nav>
+    <div class="container">
+      {% include 'includes/_messages.html' %}
+    </div>
 
-      <ul class="sidenav" id="mobile-demo">
-        <li><a href="{{url_for('farm.signout')}}">Sign out</a></li>
-      </ul>
-    </header>
     <section class="section">
+      {% from 'includes/_formhelpers.html' import render_field %}
       <div class="container">
-        {% include 'includes/_messages.html' %}
+        <h4>Administrator</h4>
+        <form method="post">
+          {{form.csrf_token}}
+          <div class="row">
+            <div class="input-field col s12">
+              {{render_field(form.username, class_='validate')}}
+            </div>
+            <div class="input-field col s12">
+              {{render_field(form.password, class_='validate')}}
+            </div>
+            <div class="col s12">
+              <button type="submit" class="btn">Sign in</button>
+            </div>
+          </div>
+        </form>
       </div>
     </section>
-
-    {% block content %}
-    {% endblock %}
-
     <footer class="page-footer teal darken-3">
       <div class="footer-copyright">
         <div class="container center">
@@ -45,7 +45,10 @@
       </div>
     </footer>
 
+    <!--JavaScript at end of body for optimized loading-->
     <script type="text/javascript" src="{{url_for('static', filename='js/materialize.min.js')}}"></script>
     <script type="text/javascript" src="{{url_for('static', filename='js/matCustom.js')}}"></script>
+    {% block scripting %}
+    {% endblock %}
   </body>
 </html>
