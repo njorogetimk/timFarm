@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="section">
+  <div class="">
+    <div class="slider">
+      <ul class="slides">
+        <li>
+          <img src="{{url_for('static', filename='images/slides/pen_and_paper_wide.jpeg')}}" alt="Pen and paper">
+          <div class="caption center-align">
+            <h3>Welcome to Tim System</h3>
+            <h5 class="light grey-text text-lighten-3">The Farm Record Keeper</h5>
+          </div>
+        </li>
+        <li>
+          <img class="hide-on-med-and-down" src="{{url_for('static', filename='images/slides/mushroom_wide.jpeg')}}" alt="Mushroom">
+          <img class="hide-on-large-only" src="{{url_for('static', filename='images/slides/mushroom.jpg')}}" alt="Mushroom">
+          <div class="caption right-align teal-text">
+            <h3>For Mushroom growers</h3>
+            <h5 class="Red-text text-lighten-1">Reference and concise history</h5>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="section teal accent-4 white-text">
+  <div class="container">
+    <h4>About</h4>
+    <p>This is the farm system developed at The Njoroges Farm.</p>
+    <p>For a start, the system was used to keep records of the Mushroom growing process. This was sparked by diverse, incomplete records kept by individual farmers. Some did not have records and used estimation. However, record keeping is an important part of every business, even in agriculture.</p>
+    <p>The aim of timsystem, as we call it, is to have a central database. The aim at the end is to leverage the Big data advantage of processing data. Therefore, this system was first used for out first Mushroom crop, 1-B1, of 2019.</p>
+  </div>
+</section>
+
+<section class="section white">
+  <div class="container teal accent-4">
+    <div class="col s12 m6">
+    <h6 class="center"><i class="medium material-icons white-text">email</i></h6>
+    <ul class="collection with-header white">
+      <li class="collection-item">The Njoroges Farm</li>
+      <li class="collection-item">Email: <a href="mailto:njorogetimk@gmail.com">njorogetimk@gmail.com</a></li>
+      <li class="collection-item">Tel. +254714479997</li>
+    </ul>
+  </div>
+  </div>
+</section>
+{% endblock %}

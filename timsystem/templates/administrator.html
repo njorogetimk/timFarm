@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!--Import materialize.css-->
+    <link type="text/css" rel="stylesheet" href="{{url_for('static', filename='css/materialize.min.css')}}"  media="screen,projection"/>
+    <link type="text/css" rel="stylesheet" href="{{url_for('static', filename='css/master.css')}}"  media="screen,projection"/>
+
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="utf-8">
+    <title>The Njoroges Farm Administrator</title>
+  </head>
+  <body>
+    <header>
+      <nav class="teal">
+        <div class="nav-wrapper">
+          <a href="{{url_for('administor.administrator')}}" class="brand-logo logo">
+            <img src="{{url_for('static', filename='images/logo.jpg')}}" alt="logo">
+          </a>
+          <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+          <ul class="right hide-on-med-and-down">
+            <li><a href="{{url_for('farm.signout')}}">Sign out</a></li>
+          </ul>
+        </div>
+      </nav>
+
+      <ul class="sidenav" id="mobile-demo">
+        <li><a href="{{url_for('farm.signout')}}">Sign out</a></li>
+      </ul>
+    </header>
+    <section class="section">
+      <div class="container">
+        {% include 'includes/_messages.html' %}
+      </div>
+    </section>
+
+    {% block content %}
+    {% endblock %}
+
+    <footer class="page-footer teal darken-3">
+      <div class="footer-copyright">
+        <div class="container center">
+          © 2019 timFarm
+        </div>
+      </div>
+    </footer>
+
+    <script type="text/javascript" src="{{url_for('static', filename='js/materialize.min.js')}}"></script>
+    <script type="text/javascript" src="{{url_for('static', filename='js/matCustom.js')}}"></script>
+  </body>
+</html>

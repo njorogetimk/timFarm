@@ -1,0 +1,44 @@
+{% extends 'admin_base.html' %}
+
+
+{% block content %}
+  <section class="section white-text">
+    <div class="container teal darken-3">
+      <h4>House: {{house_name}}</h4>
+      <div class="row">
+        <div>
+          {% if active_crop %}
+            <h5>Active Crop: <a href="{{url_for('user.disp_crop', farm_name=current_user.farm_name, house_name=house_name, crop_no=active_crop.crop_no)}}" class="btn">{{active_crop.crop_no}}</a></h5>
+          {% else %}
+            <a href="{{url_for('farm.add_crop', farm_name=current_user.farm_name, house_name=house_name)}}" class="btn"><i class="material-icons">add</i> Add a new crop</a>
+          {% endif %}
+        </div>
+        <div>
+          <h5>Archive crops</h5>
+          <table class="responsive-table">
+            <thead>
+              <tr>
+                <th>Crop Name</th>
+                <th>Crop Number</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for crop in crops %}
+                {% if not crop.status %}
+                  <tr>
+                    <td>{{crop.crop_name}}</td>
+                    <td>{{crop.crop_no}}</td>
+                    <td>{{crop.start_date}}</td>
+                    <td>{{crop.end_date}}</td>
+                  </tr>
+                {% endif %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

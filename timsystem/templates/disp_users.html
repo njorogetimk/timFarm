@@ -1,0 +1,50 @@
+{% extends 'admin_base.html' %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    <h4>{{current_user.farm_name}} farm</h4>
+    <p>Display the users present in the fam you administer</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <table class="responsive-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Username</th>
+          <th>Level</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+          <tr>
+            <td>{{user.name}}</td>
+            <td>{{user.username}}</td>
+            <td>{{user.level}}</td>
+            <td>
+              {% if user.confirmed %}
+                Active
+              {% else %}
+                Inactive
+              {% endif %}
+            </td>
+            <td>
+              {% if user.level == 'User' %}
+                <a href="{{url_for('admin.del_users', farm_name=current_user.farm_name, username=user.username)}}" class="btn">Remove</a>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% for user in users %}
+    {% endfor %}
+    <a href="{{url_for('admin.reg_user', farm_name=current_user.farm_name)}}" class="btn">Register a new user</a>
+  </div>
+</section>
+
+{% endblock %}
