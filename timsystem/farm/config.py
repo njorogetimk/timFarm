@@ -3,7 +3,7 @@ import os
 
 class Base():
     Kkey = 'c9b06027439ee6061004a982b41a714965cad7534a7b40f7'
-    SECRET_KEY = os.environ.get('SECRET_KEY') or Kkey
+    SECRET_KEY = os.environ['SECRET_KEY'] or Kkey
     WTF_CSRF_SECRET_KEY = SECRET_KEY
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -30,9 +30,9 @@ class Dev(Base):
 class Production(Base):
     DEBUG = False
     # SECRET_KEY = os.environ.get('SECRET_KEY')
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URI')
+    SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URI']
     # WTF_CRFS_SECRET_KEY = SECRET_KEY
 
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+    MAIL_USERNAME = os.environ['MAIL_USERNAME']
+    MAIL_PASSWORD = os.environ['MAIL_PASSWORD']
     MAIL_DEFAULT_SENDER = ('timsystem', MAIL_USERNAME)
