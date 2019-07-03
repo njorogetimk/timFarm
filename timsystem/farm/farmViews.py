@@ -6,16 +6,10 @@ from wtforms.fields.html5 import EmailField
 from timsystem.farm.models import Farm, Users
 from timsystem.farm.token import confirm_token
 from timsystem import db
-from timsystem import login_manager
 # import os
 
 
 farm = Blueprint('farm', __name__)
-
-
-@login_manager.user_loader
-def load_user(username):
-    return Users.query.filter_by(username=username).first()
 
 
 @farm.before_request
