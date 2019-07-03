@@ -25,3 +25,7 @@ table{
 .msg{
   background-color: blue;
 }
+
+.brand-logo>img{
+  height: 70px;
+}
