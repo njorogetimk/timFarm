@@ -7,7 +7,7 @@ from timsystem.farm.models import Farm, Users, House, Crop, Day
 from timsystem.farm.email import send_email
 from timsystem.farm.token import gen_confirm_token
 from timsystem.farm import daycheck as dayGiver
-from timsystem import db, login_manager
+from timsystem import db
 from functools import wraps
 
 
@@ -16,9 +16,6 @@ admin = Blueprint('admin', __name__)
 """
 Administrator routes
 """
-@login_manager.user_loader
-def load_user(username):
-    return Users.query.filter_by(username=username).first()
 
 
 @admin.before_request
