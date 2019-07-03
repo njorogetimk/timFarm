@@ -4,7 +4,7 @@ import os
 class Base():
     Kkey = 'c9b06027439ee6061004a982b41a714965cad7534a7b40f7'
     SECRET_KEY = os.environ.get('SECRET_KEY') or Kkey
-    WTF_CRFS_SECRET_KEY = SECRET_KEY
+    WTF_CSRF_SECRET_KEY = SECRET_KEY
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
@@ -35,3 +35,4 @@ class Production(Base):
 
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+    MAIL_DEFAULT_SENDER = ('timsystem', MAIL_USERNAME)
