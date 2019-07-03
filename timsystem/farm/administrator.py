@@ -7,7 +7,7 @@ from timsystem.farm.models import Farm
 from timsystem.farm.email import send_email
 from timsystem.farm.token import gen_confirm_token
 from timsystem.farm.models import Administrator
-from timsystem import db, mail, login_manager
+from timsystem import db, mail
 from functools import wraps
 
 
@@ -21,11 +21,6 @@ class AdminForm(Form):
     password = PasswordField('Password', [
         validators.DataRequired()
     ])
-
-
-@login_manager.user_loader
-def load_user(username):
-    return Administrator.query.filter_by(username=username).first()
 
 
 @administor.before_request

@@ -13,7 +13,6 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 login_manager = LoginManager()
-login_manager.login_view = 'signin'
 login_manager.init_app(app)
 
 mail = Mail(app)
@@ -27,10 +26,19 @@ app.register_blueprint(user)
 app.register_blueprint(admin)
 app.register_blueprint(administor)
 
-
 db.create_all()
 
-from timsystem.farm.models import Level
+from timsystem.farm.models import Level, Users, Administrator
+
+
+@login_manager.user_loader
+def load_user(id):
+    user = Users.query.filter_by(username=id).first()
+    if user:
+        return user
+    admin = Administrator.query.filter_by(username=id).first()
+    return admin
+
 
 if not Level.query.all():
     admin = Level('Admin')
