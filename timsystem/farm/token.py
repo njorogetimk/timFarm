@@ -10,7 +10,7 @@ def gen_confirm_token(in1, in2):
     return rst
 
 
-def confirm_token(token, expiration=3600):
+def confirm_token(token, expiration=3600*5):
     serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
     try:
