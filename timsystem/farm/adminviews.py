@@ -273,7 +273,7 @@ def reg_user(farm_name):
             )
             html = render_template(
                 'activate.html', confirm_url=confirm_url, admin=False,
-                farm=farm
+                user=user
             )
             subject = 'Activate Your Account'
             send_email(user_email, subject, html)

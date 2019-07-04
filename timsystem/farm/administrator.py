@@ -78,9 +78,10 @@ def farm_activate(farm_name):
         'farm.confirm_farm_token', token=token, _external=True
     )
     html = render_template(
-        'activate.html', confirm_url=confirm_url, admin=True
+        'acc_activate.html', confirm_url=confirm_url, admin=True,
+        farm_name=farm_name, accepted=True
     )
-    subject = 'Confirm Your Email'
+    subject = 'Farm Registration'
     send_email(farm.farm_email, subject, html)
 
     farm.pending = True
@@ -96,6 +97,11 @@ def farm_reject(farm_name):
     farm = Farm.query.filter_by(farm_name=farm_name).first()
     db.session.delete(farm)
     db.session.commit()
+    html = render_template(
+        'acc_activate.html', admin=True, accepted=False
+    )
+    subject = 'Farm Registration'
+    send_email(farm.farm_email, subject, html)
     flash('Farm %s registration requests rejected' % farm_name, 'danger')
     return redirect(url_for('administor.administrator'))
 

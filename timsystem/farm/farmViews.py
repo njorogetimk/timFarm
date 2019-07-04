@@ -5,6 +5,7 @@ from wtforms import Form, StringField, PasswordField, validators
 from wtforms.fields.html5 import EmailField
 from timsystem.farm.models import Farm, Users
 from timsystem.farm.token import confirm_token
+from timsystem.farm.email import send_email
 from timsystem import db
 # import os
 
@@ -154,7 +155,17 @@ def registerAdmin(farm_name):
                 )
             db.session.add(newAdmin)
             db.session.commit()
-            flash('Administrator Registered!', 'success')
+
+            html = render_template(
+                'acc_activate.html', admin=newAdmin
+            )
+            subject = 'Administrator details'
+            send_email(farm.farm_email, subject, html)
+
+            flash(
+                'Administrator Registered! Your details have been sent to your email',
+                'success'
+            )
             return redirect(url_for('farm.signin'))
         elif user.farm_name == farm_name and user.level == 'Admin':
             flash('The admin is already registered', 'success')
