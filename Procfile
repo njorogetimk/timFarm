@@ -1,1 +1,1 @@
-web: gunicorn timsystem:app
+web: gunicorn -w 10 timsystem:app
