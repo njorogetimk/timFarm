@@ -1,0 +1,29 @@
+{% if admin %}
+  {% if accepted %}
+    <p>Karibu! Thanks for signing up for a farm in our system</p>
+    <p>Please follow the link below for activation, then register your administrator</p>
+    <p>The administrator of your farm will be registered using this email</p>
+    <p>FARM NAME: {{farm_name}}</p>
+    <br>
+    <p><a href="{{confirm_url}}">{{confirm_url}}</a></p>
+    <br>
+    <p><em>Be a deligent record keeper</em></p>
+    <p>&copy; NjorogesFarm</p>
+  {% else %}
+    <p>Karibu! Thanks for signing up for a farm in our system</p>
+    <p>However, your request has been rejected by the administrator. Please contact us for further information</p>
+  {% endif %}
+{% else %}
+  <p>Your administrator has registered you to the farm {{user.farm_name}}</p>
+  <p>Follow the link below to activate your account</p>
+  <ol>
+    <li>Farm Name: {{user.farm_name}}</li>
+    <li>Username: {{user.user_name}}</li>
+    <li>Password: {{password}}</li>
+  </ol>
+  <br>
+  <p><a href="{{confirm_url}}">{{confirm_url}}</a></p>
+  <br>
+  <p><em>Be a deligent record keeper</em></p>
+  <p>&copy; NjorogesFarm</p>
+{% endif %}

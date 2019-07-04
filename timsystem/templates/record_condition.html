@@ -4,7 +4,7 @@
 {% block content %}
 {% from 'includes/_formhelpers.html' import render_field %}
   <section class="section">
-    <div class="container teal">
+    <div class="container">
       <h4>House: {{crop.house_name}}</h4>
       <h5>The crop name: {{crop.crop_name}}</h5>
       <h5>The crop number: {{crop.crop_no}}</h5>
@@ -13,8 +13,8 @@
     </div>
   </section>
 
-  <section class="section">
-    <div class="container teal">
+  <section class="section teal">
+    <div class="container white">
       <h5>Condition Section</h5>
       <form action="" method="post" class="condition">
         {{form.crfs_token}}
