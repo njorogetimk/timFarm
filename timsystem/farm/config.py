@@ -12,6 +12,9 @@ class Base():
     MAIL_PORT = 587
     MAIL_USE_TLS = True
     MAIL_USE_SSL = False
+    MAIL_USERNAME = os.environ['MAIL_USERNAME']
+    MAIL_PASSWORD = os.environ['MAIL_PASSWORD']
+    MAIL_DEFAULT_SENDER = ('timsystem', MAIL_USERNAME)
 
 
 class Dev(Base):
@@ -22,17 +25,7 @@ class Dev(Base):
     dbase = '/timfarm'
     SQLALCHEMY_DATABASE_URI = protocol+password+host+dbase
 
-    MAIL_USERNAME = 'timdevtesting@gmail.com'
-    MAIL_PASSWORD = 'enterinto'
-    MAIL_DEFAULT_SENDER = ('timsystem', MAIL_USERNAME)
-
 
 class Production(Base):
     DEBUG = False
-    # SECRET_KEY = os.environ.get('SECRET_KEY')
     SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
-    # WTF_CRFS_SECRET_KEY = SECRET_KEY
-
-    MAIL_USERNAME = os.environ['MAIL_USERNAME']
-    MAIL_PASSWORD = os.environ['MAIL_PASSWORD']
-    MAIL_DEFAULT_SENDER = ('timsystem', MAIL_USERNAME)
