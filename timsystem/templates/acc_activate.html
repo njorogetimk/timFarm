@@ -14,12 +14,12 @@
     <p>However, your request has been rejected by the administrator. Please contact us for further information</p>
   {% endif %}
 {% else %}
-  <p>Your administrator has registered you to the farm {{farm.farm_name}}</p>
+  <p>Your administrator has registered you to the farm {{user.farm_name}}</p>
   <p>Follow the link below to activate your account</p>
   <ol>
     <li>Farm Name: {{user.farm_name}}</li>
     <li>Username: {{user.user_name}}</li>
-    <li>Password: {{user.password}}</li>
+    <li>Password: {{password}}</li>
   </ol>
   <br>
   <p><a href="{{confirm_url}}">{{confirm_url}}</a></p>

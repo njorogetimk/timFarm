@@ -55,7 +55,13 @@ def registerFarm():
             newFarm = Farm(farm_name, farm_email)
             db.session.add(newFarm)
             db.session.commit()
-            # send email
+
+            html = render_template(
+                'thanks.html', farm=farm
+            )
+            subject = 'Farm Registration'
+            send_email(farm_email, subject, html)
+
             flash(
                 'Registration request of %s has been recieved. Check your mail for the activation link'
                 % (farm_name), 'success'
@@ -157,7 +163,7 @@ def registerAdmin(farm_name):
             db.session.commit()
 
             html = render_template(
-                'acc_activate.html', admin=newAdmin
+                'acc_confirmed.html', admin=newAdmin
             )
             subject = 'Administrator details'
             send_email(farm.farm_email, subject, html)
