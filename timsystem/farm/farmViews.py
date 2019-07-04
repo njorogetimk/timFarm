@@ -54,13 +54,17 @@ def registerFarm():
             newFarm = Farm(farm_name, farm_email)
             db.session.add(newFarm)
             db.session.commit()
-
+            # send email
             flash(
-                'Registration request of %s has been recieved. Check your email for the verification link' % (farm_name), 'success'
+                'Registration request of %s has been recieved. Check your mail for the activation link'
+                % (farm_name), 'success'
             )
             return redirect(url_for('farm.home'))
         else:
-            flash('The farm name %s taken' % farm_name, 'danger')
+            flash(
+                'The farm name %s taken. Please pick another one' % farm_name,
+                'danger'
+            )
             # return redirect(url_for('farm.registerFarm'))
     return render_template('register_farm.html', form=form)
 
@@ -120,7 +124,7 @@ def confirm_user_token(token):
         db.session.add(user)
         db.session.commit()
         flash('Account successfully activated', 'success')
-    return redirect(url_for('user.user_dashboard', farm_name=farm.farm_name))
+    return redirect(url_for('farm.signin'))
 
 
 @farm.route('/register-admin/<farm_name>', methods=['POST', 'GET'])
@@ -164,6 +168,14 @@ def registerAdmin(farm_name):
 def signin():
     if current_user.is_authenticated:
         flash('You are already signed in', 'success')
+        if current_user.level == 'Admin':
+            return redirect(url_for(
+                'admin.farm_admin', farm_name=current_user.farm_name
+            ))
+        else:
+            return redirect(url_for(
+                'user.user_dashboard', farm_name=current_user.farm_name))
+
     if request.method == 'POST':
         farm_name = request.form.get('farm_name')
         username = request.form.get('username')
@@ -192,7 +204,7 @@ def signin():
 
         if not user.confirmed:
             flash(
-                'Your email verification is pending. Please check your email for activation',
+                'Your email verification is pending. Please check your email for the activation link',
                 'danger'
             )
             return render_template('signin.html')
@@ -218,5 +230,5 @@ def signin():
 @farm.route('/signout')
 def signout():
     logout_user()
-    # flash Signed out
+    flash('Signed out', 'success')
     return redirect(url_for('farm.signin'))
