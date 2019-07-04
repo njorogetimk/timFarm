@@ -2,15 +2,19 @@
 
 
 {% block content %}
-  <section class="section white-text">
-    <div class="container teal darken-3">
+  <section class="section">
+    <div class="container">
       <h4>House: {{house_name}}</h4>
+    </div>
+  </section>
+  <section class="section teal">
+    <div class="container white">
       <div class="row">
         <div>
           {% if active_crop %}
             <h5>Active Crop: <a href="{{url_for('user.disp_crop', farm_name=current_user.farm_name, house_name=house_name, crop_no=active_crop.crop_no)}}" class="btn">{{active_crop.crop_no}}</a></h5>
           {% else %}
-            <a href="{{url_for('farm.add_crop', farm_name=current_user.farm_name, house_name=house_name)}}" class="btn"><i class="material-icons">add</i> Add a new crop</a>
+            <a href="{{url_for('admin.add_crop', farm_name=current_user.farm_name, house_name=house_name)}}" class="btn"><i class="material-icons">add</i> Add a new crop</a>
           {% endif %}
         </div>
         <div>

@@ -2,7 +2,7 @@
 
 {% block content %}
   <section class="section">
-    <div class="container teal">
+    <div class="container">
       <h4>The crop name: {{crop.crop_name}}</h4>
       <h4>The crop number: {{crop.crop_no}}</h4>
       <h5>
@@ -20,9 +20,10 @@
     </div>
   </section>
 
-  <section class="section">
-    <div class="container teal">
+  <section class="section teal">
+    <div class="container white">
       <h5>Crop Activities</h5>
+      <p>These are the daily activities of the crop number {{crop.crop_no}}, such as free-turning</p>
       <hr>
       <div class="row">
         <ul class="collapsible black-text">
@@ -49,9 +50,10 @@
     </div>
   </section>
 
-  <section class="section">
-    <div class="container teal">
+  <section class="section teal">
+    <div class="container white">
       <h5>Crop Condition</h5>
+      <p>This is the daily condition record of the house {{crop.house_name}} during crop number {{crop.crop_no}} period</p>
       <hr>
       <div class="row">
         <ul class="collapsible black-text">
@@ -80,9 +82,10 @@
     </div>
   </section>
 
-  <section class="section">
-    <div class="container teal">
+  <section class="section teal">
+    <div class="container white">
       <h5>Crop Harvests</h5>
+      <p>This the daily harvest of crop number {{crop.crop_no}}</p>
       <hr>
       <div class="row">
         <ul class="collapsible black-text">
@@ -113,6 +116,7 @@
     <section class="section">
       <div class="container teal">
         <h5>Start a new day</h5>
+        <p>Ensure you select the days in order. The current date of the crop is {{crop.current_date}}.</p>
         <form action="{{url_for('admin.add_day', farm_name=current_user.farm_name, house_name=crop.house_name, crop_no=crop.crop_no)}}" method="post">
           <div class="row">
             <div class="input-field col s12 m6">

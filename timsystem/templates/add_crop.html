@@ -4,10 +4,28 @@
 {% from 'includes/_formhelpers.html' import render_field %}
   <section class="section">
     <div class="container">
+      <h4>Tips 101</h4>
+      <p class="flow-text">Take not of the following when adding a new crop</p>
+      <ol>
+        <li>
+          <em>Crop Name</em>: This is the name of the mushroom species you are planting, e.g. Button, Oyester, Shitaki...
+        </li>
+        <li>
+          <em>Crop Number</em>: This is the unique identifier of the number of crop in the house. Therefore, the name given should be unique to that house.
+        </li>
+        <li>
+          <em>Start Date</em>: This is the date when you decide to mark the begining of your crop. You could decide it to the first harvesting date, or when you start soaking if you are using wheat or rice straws.
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section teal">
+    <div class="container white">
       <h4>Add a new crop</h4>
       <div class="row">
         <form method="POST" action="" class="col s12">
-          {{form.crfs_token}}
+          {{form.csrf_token}}
           <div class="row">
             <div class="input-field col s12 m6">
               {{render_field(form.crop_name, class_="validate")}}
