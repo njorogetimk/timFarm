@@ -94,7 +94,7 @@ def disp_crop(farm_name, house_name, crop_no):
     date = dayGiver.ConvDate(crop.start_date)
     min_date = date.result()  # For date picker min date
     return render_template(
-        'disp_crop.html', crop=crop, days=days, daysdata=daysdata,
+        'display/disp_crop.html', crop=crop, days=days, daysdata=daysdata,
         day_status=day_status, min_date=min_date
     )
 
@@ -170,7 +170,7 @@ def record_activities(farm_name, house_name, crop_no, day_serial):
             crop_no=crop_no
         ))
     return render_template(
-        'record_activities.html', form=form, crop=crop, day=day
+        'record/record_activities.html', form=form, crop=crop, day=day
     )
 
 
@@ -217,7 +217,7 @@ def record_condition(farm_name, house_name, crop_no, day_serial):
             crop_no=crop_no
         ))
     return render_template(
-        'record_condition.html', form=form, crop=crop, day=day
+        'record/record_condition.html', form=form, crop=crop, day=day
     )
 
 
@@ -260,5 +260,5 @@ def record_harvest(farm_name, house_name, crop_no, day_serial):
             crop_no=crop_no
         ))
     return render_template(
-        'record_harvest.html', form=form, crop=crop, day=day
+        'record/record_harvest.html', form=form, crop=crop, day=day
     )

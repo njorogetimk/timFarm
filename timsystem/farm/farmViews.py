@@ -21,7 +21,7 @@ def get_current_user():
 @farm.route('/')
 @farm.route('/home')
 def home():
-    return render_template('home.html')
+    return render_template('home/home.html')
 
 
 """
@@ -57,7 +57,7 @@ def registerFarm():
             db.session.commit()
 
             html = render_template(
-                'thanks.html', farm=farm
+                'emails/thanks.html', farm=farm
             )
             subject = 'Farm Registration'
             send_email(farm_email, subject, html)
@@ -73,7 +73,7 @@ def registerFarm():
                 'danger'
             )
             # return redirect(url_for('farm.registerFarm'))
-    return render_template('register_farm.html', form=form)
+    return render_template('register/register_farm.html', form=form)
 
 
 class RegisterAdmin(Form):
@@ -147,7 +147,7 @@ def registerAdmin(farm_name):
         farm = Farm.query.filter_by(farm_name=farm_name).first()
         if not farm:
             flash('The farm %s is not found' % farm_name, 'danger')
-            return render_template('register_admin.html', form=form)
+            return render_template('register/register_admin.html', form=form)
 
         # Check admin
         user = Users.query.filter_by(username=username).first()
@@ -163,7 +163,7 @@ def registerAdmin(farm_name):
             db.session.commit()
 
             html = render_template(
-                'acc_confirmed.html', admin=newAdmin
+                'emails/acc_confirmed.html', admin=newAdmin
             )
             subject = 'Administrator details'
             send_email(farm.farm_email, subject, html)
@@ -178,7 +178,7 @@ def registerAdmin(farm_name):
             return redirect(url_for('farm.signin'))
         else:
             flash('The username %s is already picked' % username, 'danger')
-    return render_template('register_admin.html', form=form)
+    return render_template('register/register_admin.html', form=form)
 
 
 @farm.route('/signin', methods=['GET', 'POST'])
@@ -203,34 +203,34 @@ def signin():
 
         if not farm:
             flash('The farm %s is not registered' % farm_name, 'danger')
-            return render_template('signin.html')
+            return render_template('home/signin.html')
 
         if not farm.confirmed:
             flash(
                 'Your farm registration is due. Please check your email for the confirmation link',
                 'danger'
             )
-            return render_template('signin.html')
+            return render_template('home/signin.html')
 
         user = farm.users.filter_by(username=username).first()
 
         if not user:
             flash('The username %s is not registered in the farm %s' % (
                 username, farm_name), 'danger')
-            return render_template('signin.html')
+            return render_template('home/signin.html')
 
         if not user.confirmed:
             flash(
                 'Your email verification is pending. Please check your email for the activation link',
                 'danger'
             )
-            return render_template('signin.html')
+            return render_template('home/signin.html')
 
         auth = user.authenticate(password)
 
         if not auth:
             flash('Wrong password', 'danger')
-            return render_template('signin.html')
+            return render_template('home/signin.html')
         else:
             login_user(user, remember=remember)
             if user.level == 'Admin':
@@ -240,7 +240,7 @@ def signin():
             else:
                 return redirect(url_for(
                     'user.user_dashboard', farm_name=farm_name))
-    return render_template('signin.html')
+    return render_template('home/signin.html')
 
 
 # Sign out route
