@@ -55,7 +55,7 @@ def farm_admin(farm_name):
         return redirect(url_for('farm.registerFarm'))
     # You should be able to determine which are active and dormant
     houses = farm.house.all()
-    return render_template('admin_dashboard.html', form=form, houses=houses)
+    return render_template('admin/admin_dashboard.html', form=form, houses=houses)
 
 # Display the house
 @admin.route('/<farm_name>/<house_name>/house')
@@ -77,7 +77,7 @@ def disp_house(farm_name, house_name):
     crops = house.crop.all()
     active_crop = house.crop.filter_by(status=True).first()
     return render_template(
-        'disp_house.html', crops=crops, active_crop=active_crop,
+        'display/disp_house.html', crops=crops, active_crop=active_crop,
         house_name=house_name
     )
 
@@ -164,7 +164,7 @@ def add_crop(farm_name, house_name):
             return redirect(url_for(
                 'admin.disp_house', farm_name=farm_name, house_name=house_name
             ))
-    return render_template('add_crop.html', form=form)
+    return render_template('admin/add_crop.html', form=form)
 
 
 @admin.route('/<farm_name>/<house_name>/<crop_no>/add/day', methods=['POST'])
@@ -221,7 +221,7 @@ def disp_users(farm_name):
         flash('Please register your farm %s' % farm_name, 'danger')
         return redirect(url_for('farm.registerFarm'))
     users = farm.users.order_by('username').all()
-    return render_template('disp_users.html', users=users)
+    return render_template('display/disp_users.html', users=users)
 
 
 class UserForm(Form):
@@ -272,7 +272,7 @@ def reg_user(farm_name):
                 'farm.confirm_user_token', token=token, _external=True
             )
             html = render_template(
-                'acc_activate.html', confirm_url=confirm_url, admin=False,
+                'emails/acc_activate.html', confirm_url=confirm_url, admin=False,
                 user=user, password=password
             )
             subject = 'Activate Your Account'
@@ -282,7 +282,7 @@ def reg_user(farm_name):
             return redirect(url_for('admin.disp_users', farm_name=farm_name))
         else:
             flash('The username %s is already picked' % username, 'danger')
-    return render_template('register_user.html', form=form)
+    return render_template('register/register_user.html', form=form)
 
 
 # Delete User

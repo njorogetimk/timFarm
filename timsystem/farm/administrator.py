@@ -49,23 +49,23 @@ def silence():
         admin = Administrator.query.filter_by(username=username).first()
         if not admin:
             flash('Invalid Login Parameters', 'danger')
-            return render_template('silence.html', form=form)
+            return render_template('sys_admin/silence.html', form=form)
         auth = admin.authenticate(password)
         if not auth:
             flash('Invalid Login Parameters', 'danger')
-            return render_template('silence.html', form=form)
+            return render_template('sys_admin/silence.html', form=form)
 
         login_user(admin)
         flash('Successful Login', 'success')
         return redirect(url_for('administor.administrator'))
-    return render_template('silence.html', form=form)
+    return render_template('sys_admin/silence.html', form=form)
 
 
 @administor.route('/farmAdministor')
 @is_admin
 def administrator():
     farms = Farm.query.filter_by(confirmed=False).all()
-    return render_template('admin_home.html', farms=farms)
+    return render_template('sys_admin/admin_home.html', farms=farms)
 
 
 @administor.route('/activateFarm/<farm_name>')
@@ -78,7 +78,7 @@ def farm_activate(farm_name):
         'farm.confirm_farm_token', token=token, _external=True
     )
     html = render_template(
-        'acc_activate.html', confirm_url=confirm_url, admin=True,
+        'emails/acc_activate.html', confirm_url=confirm_url, admin=True,
         farm_name=farm_name, accepted=True
     )
     subject = 'Farm Registration'
@@ -98,7 +98,7 @@ def farm_reject(farm_name):
     db.session.delete(farm)
     db.session.commit()
     html = render_template(
-        'acc_activate.html', admin=True, accepted=False
+        'emails/acc_activate.html', admin=True, accepted=False
     )
     subject = 'Farm Registration'
     send_email(farm.farm_email, subject, html)

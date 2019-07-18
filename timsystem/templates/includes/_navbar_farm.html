@@ -8,7 +8,6 @@
       {% if current_user.level == 'Admin'%}
         <li><a href="{{url_for('admin.farm_admin', farm_name=current_user.farm_name)}}">Dashboard</a></li>
         <li><a href="{{url_for('admin.disp_users', farm_name=current_user.farm_name)}}">Users</a></li>
-        <li><a href="{{url_for('admin.message', farm_name=current_user.farm_name)}}">Communicate</a></li>
       {% else %}
         <li><a href="{{url_for('user.user_dashboard', farm_name=current_user.farm_name)}}">Dashboard</a></li>
       {% endif %}
@@ -21,7 +20,6 @@
   {% if current_user.level == 'Admin'%}
     <li><a href="{{url_for('admin.farm_admin', farm_name=current_user.farm_name)}}">Dashboard</a></li>
     <li><a href="{{url_for('admin.disp_users', farm_name=current_user.farm_name)}}">Users</a></li>
-    <li><a href="{{url_for('admin.message', farm_name=current_user.farm_name)}}">Communicate</a></li>
   {% else %}
     <li><a href="{{url_for('user.user_dashboard', farm_name=current_user.farm_name)}}">Dashboard</a></li>
   {% endif %}
