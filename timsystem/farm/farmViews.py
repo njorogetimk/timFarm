@@ -31,8 +31,9 @@ Initial setup of the farm, routes
 class RegisterFarm(Form):
     farm_name = StringField('Name of the Farm', [
         validators.DataRequired(),
-        validators.length(min=3, max=30)
-    ])
+        validators.length(min=3, max=30),
+        validators.Regexp('^[A-Za-z][A-Za-z0-9_.]*$', 0, 'Usernames must have only letters, numbers, dots or underscores. Avoid Spaces')
+        ])
     farm_email = EmailField('Email', [
         validators.DataRequired(),
         validators.Email()
