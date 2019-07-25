@@ -26,6 +26,11 @@ class Dev(Base):
     SQLALCHEMY_DATABASE_URI = protocol+password+host+dbase
 
 
+class Testing():
+    SECRET_KEY = '12'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+
 class Production(Base):
     DEBUG = False
     SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
