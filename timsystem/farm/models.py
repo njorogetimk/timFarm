@@ -189,7 +189,9 @@ class Crop(db.Model):
     house = db.relationship('House', backref=db.backref(
         'crop', lazy='dynamic'
     ))
-    house_name = db.Column(db.String, db.ForeignKey('house.house_name'))
+    house_name_serial = db.Column(
+        db.String, db.ForeignKey('house.house_name_serial')
+    )
 
     def __init__(self, farm_name, house_name, crop_name, crop_no, start_date):
         self.crop_name = crop_name
@@ -198,6 +200,7 @@ class Crop(db.Model):
         self.current_date = start_date
         self.status = True
         self.house_name_serial = house_name+sep+farm_name
+        self.crop_no_serial = crop_no+sep+self.house_name_serial
         self.house = House.query.filter_by(
             house_name_serial=self.house_name_serial
         ).first()
@@ -205,7 +208,7 @@ class Crop(db.Model):
         self.house.currentCrop = self.crop_no
 
     def __repr__(self):
-        return '<Crop {}, House {}>'.format(self.crop_no, self.house_name)
+        return '<Crop {}, House {}>'.format(self.crop_no, self.house_name_serial)
 
 
 class Day(db.Model):
@@ -221,12 +224,12 @@ class Day(db.Model):
     date = db.Column(db.String)
     status = db.Column(db.Boolean)
     crop = db.relationship('Crop', backref=db.backref('day', lazy='dynamic'))
-    crop_no = db.Column(db.String, db.ForeignKey('crop.crop_no'))
+    crop_no_serial = db.Column(db.String, db.ForeignKey('crop.crop_no_serial'))
     counter = db.Column(db.Integer)
 
     def __init__(self, farm_name, house_name, crop_no, day_no, date):
         self.date = date
-        self.crop_no_serial = crop_no+sep+farm_name
+        self.crop_no_serial = crop_no+sep+house_name+sep+farm_name
         self.day_serial = day_no+sep+self.crop_no_serial
         self.day_no = int(day_no)
         self.status = True
@@ -260,16 +263,21 @@ class Harvest(db.Model):
     day = db.relationship('Day', backref=db.backref(
         'harvest', lazy='dynamic'
     ))
-    day_no = db.Column(db.String, db.ForeignKey('day.day_no'))
+    day_serial = db.Column(db.String, db.ForeignKey('day.day_serial'))
     user = db.relationship('Users', backref=db.backref(
         'harvest', lazy='dynamic'
     ))
-    chronicler = db.Column(db.String, db.ForeignKey('users.username'))
+    username_serial = db.Column(
+        db.String, db.ForeignKey('users.username_serial')
+    )
 
-    def __init__(self, farm_name, day_serial, punnets, chronicler):
+    def __init__(
+        self, farm_name, house_name, crop_no, day_no, punnets, chronicler
+    ):
         self.punnets = punnets
-        self.day = Day.query.filter_by(day_serial=day_serial).first()
+        self.day_serial = day_no+sep+crop_no+sep+house_name+sep+farm_name
         self.username_serial = chronicler+sep+farm_name
+        self.day = Day.query.filter_by(day_serial=self.day_serial).first()
         self.user = Users.query.filter_by(
             username_serial=self.username_serial
         ).first()
@@ -288,6 +296,7 @@ class Condition(db.Model):
     record_time: time the record was updated in the system
     chronicler: the user who updated the record
     day_no: the day of the harvest
+    time: the time the record was taken
     """
     id = db.Column(db.Integer, primary_key=True)
     temperature = db.Column(db.String)
@@ -297,11 +306,13 @@ class Condition(db.Model):
     day = db.relationship('Day', backref=db.backref(
         'condition', lazy='dynamic'
     ))
-    day_no = db.Column(db.String, db.ForeignKey('day.day_no'))
+    day_serial = db.Column(db.String, db.ForeignKey('day.day_serial'))
     user = db.relationship('Users', backref=db.backref(
         'condition', lazy='dynamic'
     ))
-    chronicler = db.Column(db.String, db.ForeignKey('users.username'))
+    username_serial = db.Column(
+        db.String, db.ForeignKey('users.username_serial')
+    )
 
     def __init__(
         self, farm_name, house_name, crop_no, day_no, temperature, humidity,
@@ -337,11 +348,13 @@ class Activities(db.Model):
     day = db.relationship('Day', backref=db.backref(
         'activities', lazy='dynamic'
     ))
-    day_no = db.Column(db.String, db.ForeignKey('day.day_no'))
+    day_serial = db.Column(db.String, db.ForeignKey('day.day_serial'))
     user = db.relationship('Users', backref=db.backref(
         'activities', lazy='dynamic'
     ))
-    chronicler = db.Column(db.String, db.ForeignKey('users.username'))
+    username_serial = db.Column(
+        db.String, db.ForeignKey('users.username_serial')
+    )
 
     def __init__(
         self, farm_name, house_name, crop_no, day_no, description, chronicler
