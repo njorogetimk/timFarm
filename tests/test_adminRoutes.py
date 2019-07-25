@@ -1,3 +1,4 @@
+"""
 import os
 import unittest2 as unittest
 from timsystem import app, db
@@ -38,3 +39,5 @@ class AdminRoutes(unittest.TestCase):
         # If farm_name is registered
         resp = self.app.get('/Kinoro/admin-dashboard')
         self.assertEqual(resp.status_code, 200)
+
+"""
