@@ -256,7 +256,7 @@ def reg_user(farm_name):
         user_name = form.user_name.data
         username = form.username.data
         user_email = form.user_email.data
-        user = Users.query.filter_by(username=username).first()
+        user = farm.users.filter_by(username=username).first()
         if not user:
             # pd = os.urandom(3)
             # password = pd.hex()
