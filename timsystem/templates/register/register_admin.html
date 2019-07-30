@@ -9,7 +9,7 @@
       {% from 'includes/_formhelpers.html' import render_field %}
       <div class="row">
         <form method="POST" action="" class="col s12">
-          {{form.crfs_token}}
+          {{form.csrf_token}}
           <div class="row">
             <div class="input-field col s12 m6">
               {{render_field(form.admin_name, class_="validate")}}

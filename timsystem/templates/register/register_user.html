@@ -7,7 +7,7 @@
       <h5>Add a new user</h5>
       <p>An email activation link shall be sent the user's email registered below</p>
       <form action="" method="post">
-        {{form.crfs_token}}
+        {{form.csrf_token}}
         <div class="row">
           <div class="input-field col s12">
             {{render_field(form.user_name, class_='validate')}}
