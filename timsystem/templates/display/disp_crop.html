@@ -34,13 +34,13 @@
               {% endif %}
               <div class="collapsible-header {{color}}">Day {{day.day_no}}</div>
               <div class="collapsible-body">
-                {% if daysdata[day.day_serial]['activities'] %}
-                  <p>{{daysdata[day.day_serial]['activities'].description}}</p>
+                {% if daysdata[day.day_no]['activities'] %}
+                  <p>{{daysdata[day.day_no]['activities'].description}}</p>
                   {% if current_user.level == 'Admin'%}
-                    <p>Chronicler: {{daysdata[day.day_serial]['condition'].chronicler}}</p>
+                    <p>Chronicler: {{daysdata[day.day_no]['activities'].chronicler}}</p>
                   {% endif %}
                 {% else %}
-                  <a href="{{url_for('user.record_activities', farm_name=current_user.farm_name, house_name=crop.house_name, crop_no=crop.crop_no, day_serial=day.day_serial)}}" class="btn">Update</a>
+                  <a href="{{url_for('user.record_activities', farm_name=current_user.farm_name, house_name=crop.house_name, crop_no=crop.crop_no, day_no=day.day_no)}}" class="btn">Update</a>
                 {% endif %}
               </div>
             </li>
@@ -64,15 +64,15 @@
               {% endif %}
               <div class="collapsible-header {{color}}">Day {{day.day_no}}</div>
               <div class="collapsible-body">
-                {% if daysdata[day.day_serial]['condition'] %}
-                  <p>Temperature: {{daysdata[day.day_serial]['condition'].temperature}}</p>
-                  <p>Humidity: {{daysdata[day.day_serial]['condition'].humidity}}</p>
-                  <p>Time: {{daysdata[day.day_serial]['condition'].time}}</p>
+                {% if daysdata[day.day_no]['condition'] %}
+                  <p>Temperature: {{daysdata[day.day_no]['condition'].temperature}}</p>
+                  <p>Humidity: {{daysdata[day.day_no]['condition'].humidity}}</p>
+                  <p>Time: {{daysdata[day.day_no]['condition'].time}}</p>
                   {% if current_user.level == 'Admin'%}
-                    <p>Chronicler: {{daysdata[day.day_serial]['condition'].chronicler}}</p>
+                    <p>Chronicler: {{daysdata[day.day_no]['condition'].chronicler}}</p>
                   {% endif %}
                 {% else %}
-                  <a href="{{url_for('user.record_condition', farm_name=current_user.farm_name, house_name=crop.house_name, crop_no=crop.crop_no, day_serial=day.day_serial)}}" class="btn">Update</a>
+                  <a href="{{url_for('user.record_condition', farm_name=current_user.farm_name, house_name=crop.house_name, crop_no=crop.crop_no, day_no=day.day_no)}}" class="btn">Update</a>
                 {% endif %}
               </div>
             </li>
@@ -96,13 +96,13 @@
               {% endif %}
               <div class="collapsible-header {{color}}">Day {{day.day_no}}</div>
               <div class="collapsible-body">
-                {% if daysdata[day.day_serial]['harvest'] %}
-                  <p>{{daysdata[day.day_serial]['harvest'].punnets}} punnets</p>
+                {% if daysdata[day.day_no]['harvest'] %}
+                  <p>{{daysdata[day.day_no]['harvest'].punnets}} punnets</p>
                   {% if current_user.level == 'Admin'%}
-                    <p>Chronicler: {{daysdata[day.day_serial]['condition'].chronicler}}</p>
+                    <p>Chronicler: {{daysdata[day.day_no]['condition'].chronicler}}</p>
                   {% endif %}
                 {% else %}
-                  <a href="{{url_for('user.record_harvest', farm_name=current_user.farm_name, house_name=crop.house_name, crop_no=crop.crop_no, day_serial=day.day_serial)}}" class="btn">Update</a>
+                  <a href="{{url_for('user.record_harvest', farm_name=current_user.farm_name, house_name=crop.house_name, crop_no=crop.crop_no, day_no=day.day_no)}}" class="btn">Update</a>
                 {% endif %}
               </div>
             </li>

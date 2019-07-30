@@ -86,7 +86,7 @@ def disp_crop(farm_name, house_name, crop_no):
             condt = condt[0]
         if actv:
             actv = actv[0]
-        daysdata[day.day_serial] = {
+        daysdata[day.day_no] = {
             "condition": condt, "harvest": harv, "activities": actv
         }
 
@@ -130,11 +130,11 @@ class HarvForm(Form):
 
 
 @user.route(
-    '/<farm_name>/<house_name>/<crop_no>/<day_serial>/record/activities',
+    '/<farm_name>/<house_name>/<crop_no>/<day_no>/record/activities',
     methods=['POST', 'GET']
 )
 @is_signedin
-def record_activities(farm_name, house_name, crop_no, day_serial):
+def record_activities(farm_name, house_name, crop_no, day_no):
     if farm_name != current_user.farm_name:
         flash('Unauthorized!!', 'danger')
         return redirect(url_for('farm.signout'))
@@ -152,15 +152,16 @@ def record_activities(farm_name, house_name, crop_no, day_serial):
         flash('Unregistered crop!', 'danger')
         return redirect(url_for('user.user_dashboard', farm_name=farm_name))
 
-    day = crop.day.filter_by(day_serial=day_serial).first()
+    day = crop.day.filter_by(day_no=day_no).first()
     if not day:
-        flash('The day %s is not added' % day_serial, 'danger')
+        flash('The day %s is not added' % day_no, 'danger')
         return redirect(url_for('user.user_dashboard', farm_name=farm_name))
 
     if request.method == 'POST' and form.validate():
         description = form.description.data
         activities = Activities(
-            day.day_serial, description, current_user.username
+            farm_name, house_name, crop_no, day_no, description,
+            current_user.username
         )
         db.session.add(activities)
         db.session.commit()
@@ -175,11 +176,11 @@ def record_activities(farm_name, house_name, crop_no, day_serial):
 
 
 @user.route(
-    '/<farm_name>/<house_name>/<crop_no>/<day_serial>/record/condition',
+    '/<farm_name>/<house_name>/<crop_no>/<day_no>/record/condition',
     methods=['POST', 'GET']
 )
 @is_signedin
-def record_condition(farm_name, house_name, crop_no, day_serial):
+def record_condition(farm_name, house_name, crop_no, day_no):
     if farm_name != current_user.farm_name:
         flash('Unauthorized!!', 'danger')
         return redirect(url_for('farm.signout'))
@@ -197,9 +198,9 @@ def record_condition(farm_name, house_name, crop_no, day_serial):
         flash('Unregistered crop!', 'danger')
         return redirect(url_for('user.user_dashboard', farm_name=farm_name))
 
-    day = crop.day.filter_by(day_serial=day_serial).first()
+    day = crop.day.filter_by(day_no=day_no).first()
     if not day:
-        flash('The day %s is not added' % day_serial, 'danger')
+        flash('The day %s is not added' % day_no, 'danger')
         return redirect(url_for('user.user_dashboard', farm_name=farm_name))
 
     if request.method == 'POST' and form.validate():
@@ -207,7 +208,8 @@ def record_condition(farm_name, house_name, crop_no, day_serial):
         humidity = form.humidity.data
         time = form.time.data
         condition = Condition(
-            day.day_serial, temperature, humidity, time, current_user.username
+            farm_name, house_name, crop_no, day_no, temperature, humidity,
+            time, current_user.username
         )
         db.session.add(condition)
         db.session.commit()
@@ -222,11 +224,11 @@ def record_condition(farm_name, house_name, crop_no, day_serial):
 
 
 @user.route(
-    '/<farm_name>/<house_name>/<crop_no>/<day_serial>/record/harvest',
+    '/<farm_name>/<house_name>/<crop_no>/<day_no>/record/harvest',
     methods=['POST', 'GET']
 )
 @is_signedin
-def record_harvest(farm_name, house_name, crop_no, day_serial):
+def record_harvest(farm_name, house_name, crop_no, day_no):
     if farm_name != current_user.farm_name:
         flash('Unauthorized!!', 'danger')
         return redirect(url_for('farm.signout'))
@@ -244,14 +246,16 @@ def record_harvest(farm_name, house_name, crop_no, day_serial):
         flash('Unregistered crop!', 'danger')
         return redirect(url_for('user.user_dashboard', farm_name=farm_name))
 
-    day = crop.day.filter_by(day_serial=day_serial).first()
+    day = crop.day.filter_by(day_no=day_no).first()
     if not day:
-        flash('The day %s is not added' % day_serial, 'danger')
+        flash('The day %s is not added' % day_no, 'danger')
         return redirect(url_for('user.user_dashboard', farm_name=farm_name))
 
     if request.method == 'POST' and form.validate():
         punnets = form.punnets.data
-        harvest = Harvest(day.day_serial, punnets, current_user.username)
+        harvest = Harvest(
+            farm_name, house_name, crop_no, day_no, punnets, current_user.username
+        )
         db.session.add(harvest)
         db.session.commit()
         flash('Day %s harvest updated' % day.day_no, 'success')

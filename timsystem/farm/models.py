@@ -3,6 +3,10 @@ from passlib.hash import pbkdf2_sha256 as phash
 from datetime import datetime as dt
 
 
+global sep
+sep = '%$'
+
+
 class Administrator(db.Model):
     """
     Njoroges Farm Administrator
@@ -79,6 +83,7 @@ class Users(db.Model):
     """
     name: Name of the user, Timothy Kinoro
     username: The name identifying the user in the system, njorogetimk
+    username_serial: Distinguish users of a given farm
     email: Email of the user
     password: User's password
     level: Admin or not
@@ -86,7 +91,8 @@ class Users(db.Model):
     """
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
-    username = db.Column(db.String, unique=True)
+    username = db.Column(db.String)
+    username_serial = db.Column(db.String, unique=True)
     email = db.Column(db.String)
     password = db.Column(db.String)
     confirmed = db.Column(db.Boolean)
@@ -103,6 +109,7 @@ class Users(db.Model):
     ):
         self.name = name
         self.username = username
+        self.username_serial = username+sep+farm_name
         self.email = email
         self.password = phash.hash(password)
         self.confirmed = confirmed
@@ -137,13 +144,15 @@ class Users(db.Model):
 
 class House(db.Model):
     """
-    house_name: unique name identifying the house
+    house_name: Name of the house
+    house_name_serial: unique name identifying the house
     profile_path: path to the house profile picture
     status: Boolean value whether active(True), or dormant
     farm_name: Associated farm
     """
     id = db.Column(db.Integer, primary_key=True)
-    house_name = db.Column(db.String, unique=True)
+    house_name = db.Column(db.String)
+    house_name_serial = db.Column(db.String, unique=True)
     profile_path = db.Column(db.String, nullable=True)
     status = db.Column(db.Boolean)
     farm = db.relationship('Farm', backref=db.backref('house', lazy='dynamic'))
@@ -152,6 +161,7 @@ class House(db.Model):
 
     def __init__(self, farm_name, house_name):
         self.house_name = house_name
+        self.house_name_serial = house_name+sep+farm_name
         self.farm = Farm.query.filter_by(farm_name=farm_name).first()
         self.status = False
 
@@ -162,14 +172,16 @@ class House(db.Model):
 class Crop(db.Model):
     """
     crop_name: name of the crop, e.g Button
-    crop_no: unique number identifying the crop
+    crop_no: Number of the crop
+    crop_no_serial: unique number identifying the crop
     start_date: String, identifying the start date
     status: Boolean, True(Active), False(Archived)
     house_name: Associated house
     """
     id = db.Column(db.Integer, primary_key=True)
     crop_name = db.Column(db.String)
-    crop_no = db.Column(db.String, unique=True)
+    crop_no = db.Column(db.String)
+    crop_no_serial = db.Column(db.String, unique=True)
     start_date = db.Column(db.String)
     current_date = db.Column(db.String)
     end_date = db.Column(db.String, nullable=True)
@@ -177,20 +189,28 @@ class Crop(db.Model):
     house = db.relationship('House', backref=db.backref(
         'crop', lazy='dynamic'
     ))
-    house_name = db.Column(db.String, db.ForeignKey('house.house_name'))
+    house_name_serial = db.Column(
+        db.String, db.ForeignKey('house.house_name_serial')
+    )
+    house_name = db.Column(db.String)
 
-    def __init__(self, house_name, crop_name, crop_no, start_date):
+    def __init__(self, farm_name, house_name, crop_name, crop_no, start_date):
         self.crop_name = crop_name
         self.crop_no = crop_no
         self.start_date = start_date
         self.current_date = start_date
         self.status = True
-        self.house = House.query.filter_by(house_name=house_name).first()
+        self.house_name_serial = house_name+sep+farm_name
+        self.crop_no_serial = crop_no+sep+self.house_name_serial
+        self.house = House.query.filter_by(
+            house_name_serial=self.house_name_serial
+        ).first()
         self.house.status = True
         self.house.currentCrop = self.crop_no
+        self.house_name = house_name
 
     def __repr__(self):
-        return '<Crop {}, House {}>'.format(self.crop_no, self.house_name)
+        return '<Crop {}, House {}>'.format(self.crop_no, self.house_name_serial)
 
 
 class Day(db.Model):
@@ -206,15 +226,18 @@ class Day(db.Model):
     date = db.Column(db.String)
     status = db.Column(db.Boolean)
     crop = db.relationship('Crop', backref=db.backref('day', lazy='dynamic'))
-    crop_no = db.Column(db.String, db.ForeignKey('crop.crop_no'))
+    crop_no_serial = db.Column(db.String, db.ForeignKey('crop.crop_no_serial'))
     counter = db.Column(db.Integer)
 
-    def __init__(self, crop_no, day_serial, date):
+    def __init__(self, farm_name, house_name, crop_no, day_no, date):
         self.date = date
-        self.day_serial = day_serial
-        self.day_no = int(day_serial.split('-')[0])
+        self.crop_no_serial = crop_no+sep+house_name+sep+farm_name
+        self.day_serial = day_no+sep+self.crop_no_serial
+        self.day_no = int(day_no)
         self.status = True
-        self.crop = Crop.query.filter_by(crop_no=crop_no).first()
+        self.crop = Crop.query.filter_by(
+            crop_no_serial=self.crop_no_serial
+        ).first()
         self.counter = 0
         self.crop.current_date = date
 
@@ -234,7 +257,7 @@ class Harvest(db.Model):
     punnets: Number of harvested punnets
     record_time: time the record was updated in the system
     chronicler: the user who updated the record
-    day_serial: the day of the harvest
+    day_no: the day of the harvest
     """
     id = db.Column(db.Integer, primary_key=True)
     punnets = db.Column(db.String)
@@ -246,15 +269,25 @@ class Harvest(db.Model):
     user = db.relationship('Users', backref=db.backref(
         'harvest', lazy='dynamic'
     ))
-    chronicler = db.Column(db.String, db.ForeignKey('users.username'))
+    username_serial = db.Column(
+        db.String, db.ForeignKey('users.username_serial')
+    )
+    chronicler = db.Column(db.String)
 
-    def __init__(self, day_serial, punnets, chronicler):
+    def __init__(
+        self, farm_name, house_name, crop_no, day_no, punnets, chronicler
+    ):
         self.punnets = punnets
-        self.day = Day.query.filter_by(day_serial=day_serial).first()
-        self.user = Users.query.filter_by(username=chronicler).first()
+        self.day_serial = day_no+sep+crop_no+sep+house_name+sep+farm_name
+        self.username_serial = chronicler+sep+farm_name
+        self.day = Day.query.filter_by(day_serial=self.day_serial).first()
+        self.user = Users.query.filter_by(
+            username_serial=self.username_serial
+        ).first()
         time = dt.now()
         self.record_time = time.ctime()
         self.day.day_check()
+        self.chronicler = chronicler
 
     def __repr__(self):
         return '<Harvest, {} Day {}>'.format(self.punnets, self.day_serial)
@@ -266,7 +299,8 @@ class Condition(db.Model):
     humidity: relative humidity
     record_time: time the record was updated in the system
     chronicler: the user who updated the record
-    day_serial: the day of the harvest
+    day_no: the day of the harvest
+    time: the time the record was taken
     """
     id = db.Column(db.Integer, primary_key=True)
     temperature = db.Column(db.String)
@@ -280,17 +314,28 @@ class Condition(db.Model):
     user = db.relationship('Users', backref=db.backref(
         'condition', lazy='dynamic'
     ))
-    chronicler = db.Column(db.String, db.ForeignKey('users.username'))
+    username_serial = db.Column(
+        db.String, db.ForeignKey('users.username_serial')
+    )
+    chronicler = db.Column(db.String)
 
-    def __init__(self, day_serial, temperature, humidity, time, chronicler):
+    def __init__(
+        self, farm_name, house_name, crop_no, day_no, temperature, humidity,
+        time, chronicler
+    ):
         self.temperature = temperature
         self.humidity = humidity
         self.time = time
-        self.day = Day.query.filter_by(day_serial=day_serial).first()
-        self.user = Users.query.filter_by(username=chronicler).first()
+        self.day_serial = day_no+sep+crop_no+sep+house_name+sep+farm_name
+        self.username_serial = chronicler+sep+farm_name
+        self.day = Day.query.filter_by(day_serial=self.day_serial).first()
+        self.user = Users.query.filter_by(
+            username_serial=self.username_serial
+        ).first()
         time = dt.now()
         self.record_time = time.ctime()
         self.day.day_check()
+        self.chronicler = chronicler
 
     def __repr__(self):
         return '<Condition: {}>'.format(self.day_serial)
@@ -301,7 +346,7 @@ class Activities(db.Model):
     description: Short description of the day's activities
     record_time: time the record was updated in the system
     chronicler: the user who updated the record
-    day_serial: the day of the harvest
+    day_no: the day of the harvest
     """
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String, nullable=True)
@@ -313,15 +358,25 @@ class Activities(db.Model):
     user = db.relationship('Users', backref=db.backref(
         'activities', lazy='dynamic'
     ))
-    chronicler = db.Column(db.String, db.ForeignKey('users.username'))
+    username_serial = db.Column(
+        db.String, db.ForeignKey('users.username_serial')
+    )
+    chronicler = db.Column(db.String)
 
-    def __init__(self, day_serial, description, chronicler):
+    def __init__(
+        self, farm_name, house_name, crop_no, day_no, description, chronicler
+    ):
         self.description = description
-        self.day = Day.query.filter_by(day_serial=day_serial).first()
-        self.user = Users.query.filter_by(username=chronicler).first()
+        self.day_serial = day_no+sep+crop_no+sep+house_name+sep+farm_name
+        self.username_serial = chronicler+sep+farm_name
+        self.day = Day.query.filter_by(day_serial=self.day_serial).first()
+        self.user = Users.query.filter_by(
+            username_serial=self.username_serial
+        ).first()
         time = dt.now()
         self.record_time = time.ctime()
         self.day.day_check()
+        self.chronicler = chronicler
 
     def __repr__(self):
         return '<Activities {}>'.format(self.day_serial)

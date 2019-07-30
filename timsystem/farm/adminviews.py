@@ -149,9 +149,9 @@ def add_crop(farm_name, house_name):
         crop = house.crop.filter_by(crop_no=crop_no).first()
         if not crop:
             # Get started on the new crop
-            crop = Crop(house_name, crop_name, crop_no, start_date)
-            day_serial = '1-'+crop_no
-            day = Day(crop_no, day_serial, start_date)
+            crop = Crop(farm_name, house_name, crop_name, crop_no, start_date)
+            day_no = '1'
+            day = Day(farm_name, house_name, crop_no, day_no, start_date)
             db.session.add(crop)
             db.session.add(day)
             db.session.commit()
@@ -190,10 +190,9 @@ def add_day(farm_name, house_name, crop_no):
     date = request.form.get('date')
     daycheck = dayGiver.Dates(crop.start_date, date)
     day_no = str(daycheck.day_no())
-    day_serial = day_no+'-'+crop.crop_no
-    get_day = crop.day.filter_by(day_serial=day_serial).first()
+    get_day = crop.day.filter_by(day_no=day_no).first()
     if not get_day:
-        day = Day(crop_no, day_serial, date)
+        day = Day(farm_name, house_name, crop_no, day_no, date)
         db.session.add(day)
         db.session.commit()
         flash('Day %s of crop %s started' % (day_no, crop.crop_no), 'success')
@@ -256,7 +255,7 @@ def reg_user(farm_name):
         user_name = form.user_name.data
         username = form.username.data
         user_email = form.user_email.data
-        user = Users.query.filter_by(username=username).first()
+        user = farm.users.filter_by(username=username).first()
         if not user:
             # pd = os.urandom(3)
             # password = pd.hex()

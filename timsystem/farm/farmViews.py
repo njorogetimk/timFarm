@@ -151,7 +151,7 @@ def registerAdmin(farm_name):
             return render_template('register/register_admin.html', form=form)
 
         # Check admin
-        user = Users.query.filter_by(username=username).first()
+        user = farm.users.filter_by(username=username).first()
         if not user:
             # Register admin
             farm = Farm.query.filter_by(farm_name=farm_name).first()
