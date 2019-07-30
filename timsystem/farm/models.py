@@ -192,6 +192,7 @@ class Crop(db.Model):
     house_name_serial = db.Column(
         db.String, db.ForeignKey('house.house_name_serial')
     )
+    house_name = db.Column(db.String)
 
     def __init__(self, farm_name, house_name, crop_name, crop_no, start_date):
         self.crop_name = crop_name
@@ -206,6 +207,7 @@ class Crop(db.Model):
         ).first()
         self.house.status = True
         self.house.currentCrop = self.crop_no
+        self.house_name = house_name
 
     def __repr__(self):
         return '<Crop {}, House {}>'.format(self.crop_no, self.house_name_serial)
@@ -270,6 +272,7 @@ class Harvest(db.Model):
     username_serial = db.Column(
         db.String, db.ForeignKey('users.username_serial')
     )
+    chronicler = db.Column(db.String)
 
     def __init__(
         self, farm_name, house_name, crop_no, day_no, punnets, chronicler
@@ -284,6 +287,7 @@ class Harvest(db.Model):
         time = dt.now()
         self.record_time = time.ctime()
         self.day.day_check()
+        self.chronicler = chronicler
 
     def __repr__(self):
         return '<Harvest, {} Day {}>'.format(self.punnets, self.day_serial)
@@ -313,6 +317,7 @@ class Condition(db.Model):
     username_serial = db.Column(
         db.String, db.ForeignKey('users.username_serial')
     )
+    chronicler = db.Column(db.String)
 
     def __init__(
         self, farm_name, house_name, crop_no, day_no, temperature, humidity,
@@ -330,6 +335,7 @@ class Condition(db.Model):
         time = dt.now()
         self.record_time = time.ctime()
         self.day.day_check()
+        self.chronicler = chronicler
 
     def __repr__(self):
         return '<Condition: {}>'.format(self.day_serial)
@@ -355,6 +361,7 @@ class Activities(db.Model):
     username_serial = db.Column(
         db.String, db.ForeignKey('users.username_serial')
     )
+    chronicler = db.Column(db.String)
 
     def __init__(
         self, farm_name, house_name, crop_no, day_no, description, chronicler
@@ -369,6 +376,7 @@ class Activities(db.Model):
         time = dt.now()
         self.record_time = time.ctime()
         self.day.day_check()
+        self.chronicler = chronicler
 
     def __repr__(self):
         return '<Activities {}>'.format(self.day_serial)
