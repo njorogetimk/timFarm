@@ -1,7 +1,6 @@
 import os
 import unittest
 from timsystem import app, db
-from timsystem.farm.models import Farm
 
 
 class Test_FarmRoutes(unittest.TestCase):
