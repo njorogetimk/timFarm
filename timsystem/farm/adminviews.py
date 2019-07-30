@@ -4,6 +4,7 @@ from flask_login import current_user
 from wtforms import Form, StringField, validators
 from wtforms.fields.html5 import EmailField
 from timsystem.farm.models import Farm, Users, House, Crop, Day
+from timsystem.farm.models import Activities, Harvest, Condition
 from timsystem.farm.email import send_email
 from timsystem.farm.token import gen_confirm_token
 from timsystem.farm.userviews import StartDay
@@ -208,6 +209,76 @@ def add_day(farm_name, house_name, crop_no):
             'user.disp_crop', farm_name=farm_name, house_name=house_name,
             crop_no=crop_no, form=form
         ))
+
+
+# End a day
+@admin.route('/<farm_name>/<house_name>/<crop_no>/end/day/<day_no>')
+@is_admin
+def end_day(farm_name, house_name, crop_no, day_no):
+    if farm_name != current_user.farm_name:
+        flash('Unauthorized!!', 'danger')
+        return redirect(url_for('farm.signout'))
+    farm = Farm.query.filter_by(farm_name=farm_name).first()
+    if not farm:
+        flash('Please register your farm %s' % farm_name, 'danger')
+        return redirect(url_for('farm.registerFarm'))
+    house = farm.house.filter_by(house_name=house_name).first()
+    if not house:
+        flash('The house %s is not registered' % house_name, 'danger')
+        return redirect(url_for('admin.farm_admin', farm_name=farm_name))
+    crop = house.crop.filter_by(crop_no=crop_no).first()
+    if not crop:
+        flash('The crop %s is not present in this house' % crop_no, 'danger')
+        return redirect(url_for(
+            'admin.disp_house', farm_name=farm_name, house_name=house_name
+        ))
+    day = crop.day.filter_by(day_no=day_no).first()
+    if not day:
+        flash('The day %s is not present in this crop' % day_no, 'danger')
+        return redirect(url_for(
+            'user.disp_crop', farm_name=farm_name, house_name=house_name,
+            crop_no=crop_no
+        ))
+
+    # End the day
+    actv = day.activities.filter_by(updated=True).first()
+    harv = day.harvest.filter_by(updated=True).first()
+    condt = day.condition.filter_by(updated=True).first()
+
+    if not actv:
+        # Update null fields
+        description = 'There were no activities'
+        null_actv = Activities(
+            farm_name, house_name, crop_no, day_no, description, current_user.username
+        )
+        db.session.add(null_actv)
+        db.session.commit()
+
+    if not harv:
+        # Update null fields
+        punnets = '0'
+        null_harv = Harvest(
+            farm_name, house_name, crop_no, day_no, punnets, current_user.username
+        )
+        db.session.add(null_harv)
+        db.session.commit()
+
+    if not condt:
+        # Update null fields
+        temperature = '0'
+        humidity = '0'
+        time = '00:00'
+        null_condt = Condition(
+            farm_name, house_name, crop_no, day_no, temperature, humidity,
+            time, current_user.username
+        )
+        db.session.add(null_condt)
+        db.session.commit()
+    flash('Day %s ended' % day_no, 'success')
+    return redirect(url_for(
+        'user.disp_crop', farm_name=farm_name, house_name=house_name,
+        crop_no=crop_no
+    ))
 
 
 # View Users

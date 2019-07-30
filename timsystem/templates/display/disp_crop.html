@@ -118,7 +118,7 @@
     <section class="section">
       <div class="container teal">
         <h5>Start a new day</h5>
-        <p>Ensure you select the days in order. The current date of the crop is {{crop.current_date}}.</p>
+        <p>To begin a new day, data belonging to the current date MUST be entered. To terminate a day, head over to the "End day" section below. Ensure you select the days in order. The current date of the crop is {{crop.current_date}}.</p>
         <form action="{{url_for('admin.add_day', farm_name=current_user.farm_name, house_name=crop.house_name, crop_no=crop.crop_no)}}" method="post">
           {{form.csrf_token}}
           <div class="row">
@@ -143,13 +143,13 @@
     <section class="section teal">
       <div class="container white">
         <h5>End a day</h5>
-        <p>This ends a day. It sets data that has not been updated to zero. For instance, temperature will be set to '0', humidity to '0' and activities to 'no activities updated'</p>
+        <p>This ends a day. It sets data that has not been updated to zero. For instance, temperature will be set to '0', humidity to '0' and activities to 'no activities updated' This can only be done when a new day has began. Otherwise, the SUNSET button is disabled</p>
         {% if not day_status %}
           {% set disabled = 'disabled' %}
         {% else %}
           {% set disabled = '' %}
         {% endif %}
-        <a href="" class="btn disabled">Sunset</a>
+        <a href="{{url_for('admin.end_day', farm_name=current_user.farm_name, house_name=crop.house_name, crop_no=crop.crop_no, day_no=day_status.day_no)}}" class="btn {{disabled}}">Sunset</a>
       </div>
     </section>
   {% endif %}
