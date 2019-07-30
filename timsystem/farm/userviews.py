@@ -53,9 +53,16 @@ def user_dashboard(farm_name):
 
 
 # Display a crop
+class StartDay(Form):
+    date = StringField('Pick the start date', [
+        validators.DataRequired()
+    ])
+
+
 @user.route('/<farm_name>/<house_name>/crop/<crop_no>')
 @is_signedin
 def disp_crop(farm_name, house_name, crop_no):
+    form = StartDay(request.form)
     if farm_name != current_user.farm_name:
         flash('Unauthorized!!', 'danger')
         return redirect(url_for('farm.signout'))
@@ -95,7 +102,7 @@ def disp_crop(farm_name, house_name, crop_no):
     min_date = date.result()  # For date picker min date
     return render_template(
         'display/disp_crop.html', crop=crop, days=days, daysdata=daysdata,
-        day_status=day_status, min_date=min_date
+        day_status=day_status, min_date=min_date, form=form
     )
 
 

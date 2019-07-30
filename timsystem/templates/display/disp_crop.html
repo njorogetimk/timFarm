@@ -1,6 +1,7 @@
 {% extends 'base/admin_base.html' %}
 
 {% block content %}
+{% from 'includes/_formhelpers.html' import render_field %}
   <section class="section">
     <div class="container">
       <h4>House: <a href="{{url_for('admin.disp_house', farm_name=current_user.farm_name, house_name=crop.house_name)}}" class="btn">{{crop.house_name}}</a></h4>
@@ -30,7 +31,7 @@
         <ul class="collapsible black-text">
           {% for day in days %}
             <li class="col s12 m3">
-              {% if day.status %}
+              {% if not day.actv %}
                 {% set color = 'blue' %}
               {% endif %}
               <div class="collapsible-header {{color}}">Day {{day.day_no}}</div>
@@ -60,7 +61,7 @@
         <ul class="collapsible black-text">
           {% for day in days %}
             <li class="col s12 m3">
-              {% if day.status %}
+              {% if not day.condt %}
                 {% set color = 'blue' %}
               {% endif %}
               <div class="collapsible-header {{color}}">Day {{day.day_no}}</div>
@@ -92,7 +93,7 @@
         <ul class="collapsible black-text">
           {% for day in days %}
             <li class="col s12 m3">
-              {% if day.status %}
+              {% if not day.harv %}
                 {% set color = 'blue' %}
               {% endif %}
               <div class="collapsible-header {{color}}">Day {{day.day_no}}</div>
@@ -119,10 +120,12 @@
         <h5>Start a new day</h5>
         <p>Ensure you select the days in order. The current date of the crop is {{crop.current_date}}.</p>
         <form action="{{url_for('admin.add_day', farm_name=current_user.farm_name, house_name=crop.house_name, crop_no=crop.crop_no)}}" method="post">
+          {{form.csrf_token}}
           <div class="row">
             <div class="input-field col s12 m6">
-              <input type="text" name="date" class="mydatepicker" id="date">
-              <label for="date">Select the date</label>
+              {{render_field(form.date, class_='mydatepicker')}}
+              <!-- <input type="text" name="date" class="mydatepicker" id="date"> -->
+              <!-- <label for="date">Select the date</label> -->
             </div>
             {% if day_status %}
               {% set disabled = 'disabled' %}

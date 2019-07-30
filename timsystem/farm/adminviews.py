@@ -6,6 +6,7 @@ from wtforms.fields.html5 import EmailField
 from timsystem.farm.models import Farm, Users, House, Crop, Day
 from timsystem.farm.email import send_email
 from timsystem.farm.token import gen_confirm_token
+from timsystem.farm.userviews import StartDay
 from timsystem.farm import daycheck as dayGiver
 from timsystem import db
 from functools import wraps
@@ -170,6 +171,7 @@ def add_crop(farm_name, house_name):
 @admin.route('/<farm_name>/<house_name>/<crop_no>/add/day', methods=['POST'])
 @is_admin
 def add_day(farm_name, house_name, crop_no):
+    form = StartDay(request.form)
     if farm_name != current_user.farm_name:
         flash('Unauthorized!!', 'danger')
         return redirect(url_for('farm.signout'))
@@ -187,7 +189,7 @@ def add_day(farm_name, house_name, crop_no):
         return redirect(url_for(
             'admin.disp_house', farm_name=farm_name, house_name=house_name
         ))
-    date = request.form.get('date')
+    date = form.date.data
     daycheck = dayGiver.Dates(crop.start_date, date)
     day_no = str(daycheck.day_no())
     get_day = crop.day.filter_by(day_no=day_no).first()
@@ -204,7 +206,7 @@ def add_day(farm_name, house_name, crop_no):
         flash('The day %s is present. Update its record' % day_no, 'success')
         return redirect(url_for(
             'user.disp_crop', farm_name=farm_name, house_name=house_name,
-            crop_no=crop_no
+            crop_no=crop_no, form=form
         ))
 
 
