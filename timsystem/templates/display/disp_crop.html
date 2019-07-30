@@ -130,10 +130,23 @@
               {% set disabled = '' %}
             {% endif %}
             <div class="col s12 m6">
-              <button type="submit" name="action" class="{{disabled}} btn">Start</button>
+              <button type="submit" name="action" class="{{disabled}} btn">Sunrise</button>
             </div>
           </div>
         </form>
+      </div>
+    </section>
+
+    <section class="section teal">
+      <div class="container white">
+        <h5>End a day</h5>
+        <p>This ends a day. It sets data that has not been updated to zero. For instance, temperature will be set to '0', humidity to '0' and activities to 'no activities updated'</p>
+        {% if not day_status %}
+          {% set disabled = 'disabled' %}
+        {% else %}
+          {% set disabled = '' %}
+        {% endif %}
+        <a href="" class="btn disabled">Sunset</a>
       </div>
     </section>
   {% endif %}
