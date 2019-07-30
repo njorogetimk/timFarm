@@ -3,6 +3,7 @@
 {% block content %}
   <section class="section">
     <div class="container">
+      <h4>House: <a href="{{url_for('admin.disp_house', farm_name=current_user.farm_name, house_name=crop.house_name)}}" class="btn">{{crop.house_name}}</a></h4>
       <h4>The crop name: {{crop.crop_name}}</h4>
       <h4>The crop number: {{crop.crop_no}}</h4>
       <h5>
