@@ -100,7 +100,7 @@
                 {% if daysdata[day.day_no]['harvest'] %}
                   <p>{{daysdata[day.day_no]['harvest'].punnets}} punnets</p>
                   {% if current_user.level == 'Admin'%}
-                    <p>Chronicler: {{daysdata[day.day_no]['condition'].chronicler}}</p>
+                    <p>Chronicler: {{daysdata[day.day_no]['harvest'].chronicler}}</p>
                   {% endif %}
                 {% else %}
                   <a href="{{url_for('user.record_harvest', farm_name=current_user.farm_name, house_name=crop.house_name, crop_no=crop.crop_no, day_no=day.day_no)}}" class="btn">Update</a>
