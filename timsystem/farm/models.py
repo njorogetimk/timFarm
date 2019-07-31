@@ -186,6 +186,7 @@ class Crop(db.Model):
     current_date = db.Column(db.String)
     end_date = db.Column(db.String, nullable=True)
     status = db.Column(db.Boolean)
+    summary = db.Column(db.String)
     house = db.relationship('House', backref=db.backref(
         'crop', lazy='dynamic'
     ))
@@ -208,6 +209,12 @@ class Crop(db.Model):
         self.house.status = True
         self.house.currentCrop = self.crop_no
         self.house_name = house_name
+
+    def summarize(self, date, summary):
+        self.current_date = date
+        self.end_date = date
+        self.status = False
+        self.summary = summary
 
     def __repr__(self):
         return '<Crop {}, House {}>'.format(self.crop_no, self.house_name_serial)

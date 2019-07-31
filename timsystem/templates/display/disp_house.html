@@ -36,6 +36,7 @@
                     <td>{{crop.crop_no}}</td>
                     <td>{{crop.start_date}}</td>
                     <td>{{crop.end_date}}</td>
+                    <td><a href="{{url_for('user.disp_crop', farm_name=current_user.farm_name, house_name=house_name, crop_no=crop.crop_no)}}" class="btn">Explore</a></td>
                   </tr>
                 {% endif %}
               {% endfor %}

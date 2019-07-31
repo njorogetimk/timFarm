@@ -1,0 +1,42 @@
+{% extends 'base/admin_base.html' %}
+
+
+{% block content %}
+{% from 'includes/_formhelpers.html' import render_field %}
+  <section class="section">
+    <div class="container">
+      <h5>Time to summarize crop {{crop.crop_no}} of house {{crop.house_name}}</h5>
+    </div>
+  </section>
+
+  <section class="section teal">
+    <div class="container white">
+      <p>The current crop date is {{crop.current_date}}</p>
+      <div class="row">
+        <form method="post">
+          <div class="input-field col s12">
+            {{render_field(form.summary)}}
+          </div>
+          <div class="input-field col s12, m4">
+            {{render_field(form.date, class_='mydatepicker')}}
+          </div>
+          <div class="clearfix"></div>
+          <div class="col s4">
+            <button type="submit" class="btn">Summarize</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+{% endblock %}
+
+{% block scripting %}
+  <script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+      var elems = document.querySelectorAll('.mydatepicker');
+      var instances = M.Datepicker.init(elems, {
+        minDate: new Date('{{min_date}}')
+      });
+    });
+  </script>
+{% endblock %}

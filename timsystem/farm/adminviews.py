@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, request
 from flask import flash, g
 from flask_login import current_user
-from wtforms import Form, StringField, validators
+from wtforms import Form, StringField, TextAreaField, validators
 from wtforms.fields.html5 import EmailField
 from timsystem.farm.models import Farm, Users, House, Crop, Day
 from timsystem.farm.models import Activities, Harvest, Condition
@@ -167,6 +167,59 @@ def add_crop(farm_name, house_name):
                 'admin.disp_house', farm_name=farm_name, house_name=house_name
             ))
     return render_template('admin/add_crop.html', form=form)
+
+
+class EndCrop(Form):
+    summary = TextAreaField("The crop summarizing comments", [
+        validators.DataRequired(),
+        validators.length(min=5, max=600)
+    ])
+    date = StringField("Pick the ending date", [
+        validators.DataRequired()
+    ])
+
+
+@admin.route(
+    '/<farm_name>/<house_name>/<crop_no>/archive', methods=['GET', 'POST']
+)
+@is_admin
+def archive_crop(farm_name, house_name, crop_no):
+    form = EndCrop(request.form)
+    if farm_name != current_user.farm_name:
+        flash('Unauthorized!!', 'danger')
+        return redirect(url_for('farm.signout'))
+    farm = Farm.query.filter_by(farm_name=farm_name).first()
+    if not farm:
+        flash('Please register your farm %s' % farm_name, 'danger')
+        return redirect(url_for('farm.registerFarm'))
+    house = farm.house.filter_by(house_name=house_name).first()
+    if not house:
+        flash('The house %s is not registered' % house_name, 'danger')
+        return redirect(url_for('admin.farm_admin', farm_name=farm_name))
+    crop = house.crop.filter_by(crop_no=crop_no).first()
+    if not crop:
+        flash('The crop %s is not present in this house' % crop_no, 'danger')
+        return redirect(url_for(
+            'admin.disp_house', farm_name=farm_name, house_name=house_name
+        ))
+
+    date = dayGiver.ConvDate(crop.current_date)
+    min_date = date.result()  # For date picker min date
+
+    if request.method == 'POST' and form.validate():
+        # End the crop
+        summary = form.summary.data
+        date = form.date.data
+
+        crop.summarize(date, summary)
+        db.session.commit()
+        return redirect(url_for(
+            'admin.disp_house', farm_name=current_user.farm_name,
+            house_name=crop.house_name
+        ))
+    return render_template(
+        'admin/archive_crop.html', crop=crop, form=form, min_date=min_date
+    )
 
 
 @admin.route('/<farm_name>/<house_name>/<crop_no>/add/day', methods=['POST'])
