@@ -78,9 +78,30 @@ def disp_house(farm_name, house_name):
     # The crops should have an active or archived status
     crops = house.crop.all()
     active_crop = house.crop.filter_by(status=True).first()
+
+    # Change the house status
+    freeze = request.args.get('freeze')
+    activate = request.args.get('activate')
+    if freeze:
+        # Freeze the house
+        house.status = False
+        db.session.commit()
+        flash('The house is now frozen', 'success')
+        return redirect(url_for(
+            'admin.disp_house', farm_name=farm_name, house_name=house_name
+        ))
+    if activate:
+        # Activate the house
+        house.status = True
+        db.session.commit()
+        flash('The house has been activated', 'success')
+        return redirect(url_for(
+            'admin.disp_house', farm_name=farm_name, house_name=house_name
+        ))
+
     return render_template(
         'display/disp_house.html', crops=crops, active_crop=active_crop,
-        house_name=house_name
+        house=house
     )
 
 
@@ -142,6 +163,12 @@ def add_crop(farm_name, house_name):
         flash('The house %s is not registered' % house_name, 'danger')
         return redirect(url_for('admin.farm_admin', farm_name=farm_name))
 
+    # Get the current crop in the house
+    current_crop_no = house.currentCrop
+    current_crop = house.crop.filter_by(crop_no=current_crop_no).first()
+    date = dayGiver.ConvDate(current_crop.end_date)
+    min_date = date.result()  # For date picker min date
+
     if request.method == 'POST' and form.validate():
         # Get the data and update it
         crop_name = form.crop_name.data
@@ -166,7 +193,7 @@ def add_crop(farm_name, house_name):
             return redirect(url_for(
                 'admin.disp_house', farm_name=farm_name, house_name=house_name
             ))
-    return render_template('admin/add_crop.html', form=form)
+    return render_template('admin/add_crop.html', form=form, min_date=min_date)
 
 
 class EndCrop(Form):

@@ -4,7 +4,7 @@
 {% block content %}
   <section class="section">
     <div class="container">
-      <h4>House: {{house_name}}</h4>
+      <h4>House: {{house.house_name}}</h4>
     </div>
   </section>
   <section class="section teal">
@@ -12,13 +12,18 @@
       <div class="row">
         <div>
           {% if active_crop %}
-            <h5>Active Crop: <a href="{{url_for('user.disp_crop', farm_name=current_user.farm_name, house_name=house_name, crop_no=active_crop.crop_no)}}" class="btn">{{active_crop.crop_no}}</a></h5>
+            <h5>Active Crop: <a href="{{url_for('user.disp_crop', farm_name=current_user.farm_name, house_name=house.house_name, crop_no=active_crop.crop_no)}}" class="btn">{{active_crop.crop_no}}</a></h5>
           {% else %}
-            <a href="{{url_for('admin.add_crop', farm_name=current_user.farm_name, house_name=house_name)}}" class="btn"><i class="material-icons">add</i> Add a new crop</a>
+            {% if house.status %}
+              {% set disabled = '' %}
+            {% else %}
+              {% set disabled = 'disabled' %}
+            {% endif %}
+            <a href="{{url_for('admin.add_crop', farm_name=current_user.farm_name, house_name=house.house_name)}}" class="btn {{disabled}}"><i class="material-icons">add</i> Add a new crop</a>
           {% endif %}
         </div>
         <div>
-          <h5>Archive crops</h5>
+          <h5>Archived crops</h5>
           <table class="responsive-table">
             <thead>
               <tr>
@@ -36,12 +41,42 @@
                     <td>{{crop.crop_no}}</td>
                     <td>{{crop.start_date}}</td>
                     <td>{{crop.end_date}}</td>
-                    <td><a href="{{url_for('user.disp_crop', farm_name=current_user.farm_name, house_name=house_name, crop_no=crop.crop_no)}}" class="btn">Explore</a></td>
+                    <td><a href="{{url_for('user.disp_crop', farm_name=current_user.farm_name, house_name=house.house_name, crop_no=crop.crop_no)}}" class="btn">Explore</a></td>
                   </tr>
                 {% endif %}
               {% endfor %}
             </tbody>
           </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container teal">
+      <h5>House Status</h5>
+      <p>You can either freeze the house to make it dormant, or activate it to add new crops to it</p>
+      <p>NOTE: A house cannot be frozen when an active crop is running. First, the active crop has to be summarized.</p>
+      <div class="row">
+        {% if house.status %}
+          <!-- Active house -->
+          {% set activate = 'disabled'%}
+          {% if not active_crop %}
+            {% set freeze = '' %}
+          {% else %}
+            {% set freeze = 'disabled' %}
+          {% endif %}
+
+        {% else %}
+          <!-- Dormant House -->
+          {% set freeze = 'disabled' %}
+          {% set activate = '' %}
+        {% endif %}
+        <div class="col s12 m4">
+          <a href="{{url_for('admin.disp_house', farm_name=current_user.farm_name, house_name=house.house_name, activate=True)}}" class="btn {{activate}}">Activate</a>
+        </div>
+        <div class="col s12 m4">
+          <a href="{{url_for('admin.disp_house', farm_name=current_user.farm_name, house_name=house.house_name, freeze=True)}}" class="btn {{freeze}}">Freeze</a>
         </div>
       </div>
     </div>

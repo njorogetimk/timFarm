@@ -34,7 +34,7 @@
               {{render_field(form.crop_no, class_="validate")}}
             </div>
             <div class="input-field col s12 m6">
-              {{render_field(form.start_date, class_="datepicker")}}
+              {{render_field(form.start_date, class_="mydatepicker")}}
             </div>
           </div>
           <div class="col s12">
@@ -44,4 +44,15 @@
       </div>
     </div>
   </section>
+{% endblock %}
+
+{% block scripting %}
+  <script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+      var elems = document.querySelectorAll('.mydatepicker');
+      var instances = M.Datepicker.init(elems, {
+        minDate: new Date('{{min_date}}')
+      });
+    });
+  </script>
 {% endblock %}
