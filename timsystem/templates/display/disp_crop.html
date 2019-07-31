@@ -1,6 +1,7 @@
 {% extends 'base/admin_base.html' %}
 
 {% block content %}
+{% from 'includes/_formhelpers.html' import render_field %}
   <section class="section">
     <div class="container">
       <h4>House: <a href="{{url_for('admin.disp_house', farm_name=current_user.farm_name, house_name=crop.house_name)}}" class="btn">{{crop.house_name}}</a></h4>
@@ -8,14 +9,13 @@
       <h4>The crop number: {{crop.crop_no}}</h4>
       <h5>
         <p>Start Date: {{crop.start_date}};</p>
-        <p>
-          Current Date: {{crop.current_date}};
-          {% if day_status %}
-          <small>Day {{day_status.day_no}}</small>
-          {% endif %}
-        </p>
         {% if crop.end_date %}
           <p>End Date: {{crop.end_date}}</p>
+        {% else %}
+        Current Date: {{crop.current_date}};
+        {% if day_status %}
+        <small>Day {{day_status.day_no}}</small>
+        {% endif %}
         {% endif %}
       </h5>
     </div>
@@ -30,7 +30,7 @@
         <ul class="collapsible black-text">
           {% for day in days %}
             <li class="col s12 m3">
-              {% if day.status %}
+              {% if not day.actv %}
                 {% set color = 'blue' %}
               {% endif %}
               <div class="collapsible-header {{color}}">Day {{day.day_no}}</div>
@@ -60,7 +60,7 @@
         <ul class="collapsible black-text">
           {% for day in days %}
             <li class="col s12 m3">
-              {% if day.status %}
+              {% if not day.condt %}
                 {% set color = 'blue' %}
               {% endif %}
               <div class="collapsible-header {{color}}">Day {{day.day_no}}</div>
@@ -92,7 +92,7 @@
         <ul class="collapsible black-text">
           {% for day in days %}
             <li class="col s12 m3">
-              {% if day.status %}
+              {% if not day.harv %}
                 {% set color = 'blue' %}
               {% endif %}
               <div class="collapsible-header {{color}}">Day {{day.day_no}}</div>
@@ -100,7 +100,7 @@
                 {% if daysdata[day.day_no]['harvest'] %}
                   <p>{{daysdata[day.day_no]['harvest'].punnets}} punnets</p>
                   {% if current_user.level == 'Admin'%}
-                    <p>Chronicler: {{daysdata[day.day_no]['condition'].chronicler}}</p>
+                    <p>Chronicler: {{daysdata[day.day_no]['harvest'].chronicler}}</p>
                   {% endif %}
                 {% else %}
                   <a href="{{url_for('user.record_harvest', farm_name=current_user.farm_name, house_name=crop.house_name, crop_no=crop.crop_no, day_no=day.day_no)}}" class="btn">Update</a>
@@ -114,15 +114,28 @@
   </section>
 
   {% if current_user.level == 'Admin' %}
+  {% if not crop.status %}
+    <!-- This hides the sections needed for an active crop and displays the summary -->
+    {% set hidden = 'hidden' %}
+
     <section class="section">
       <div class="container teal">
+        <h5>Crop {{crop.crop_no}} summary</h5>
+        <p>{{crop.summary}}</p>
+      </div>
+    </section>
+  {% endif %}
+    <section class="section" {{hidden}}>
+      <div class="container teal">
         <h5>Start a new day</h5>
-        <p>Ensure you select the days in order. The current date of the crop is {{crop.current_date}}.</p>
+        <p>To begin a new day, data belonging to the current date MUST be entered. To terminate a day, head over to the "End day" section below. Ensure you select the days in order. The current date of the crop is {{crop.current_date}}.</p>
         <form action="{{url_for('admin.add_day', farm_name=current_user.farm_name, house_name=crop.house_name, crop_no=crop.crop_no)}}" method="post">
+          {{form.csrf_token}}
           <div class="row">
             <div class="input-field col s12 m6">
-              <input type="text" name="date" class="mydatepicker" id="date">
-              <label for="date">Select the date</label>
+              {{render_field(form.date, class_='mydatepicker')}}
+              <!-- <input type="text" name="date" class="mydatepicker" id="date"> -->
+              <!-- <label for="date">Select the date</label> -->
             </div>
             {% if day_status %}
               {% set disabled = 'disabled' %}
@@ -130,10 +143,36 @@
               {% set disabled = '' %}
             {% endif %}
             <div class="col s12 m6">
-              <button type="submit" name="action" class="{{disabled}} btn">Start</button>
+              <button type="submit" name="action" class="{{disabled}} btn">Sunrise</button>
             </div>
           </div>
         </form>
+      </div>
+    </section>
+
+    <section class="section teal" {{hidden}}>
+      <div class="container white">
+        <h5>End a day</h5>
+        <p>This ends a day. It sets data that has not been updated to zero. For instance, temperature will be set to '0', humidity to '0' and activities to 'no activities updated' This can only be done when a new day has began. Otherwise, the SUNSET button is disabled</p>
+        {% if not day_status %}
+          {% set disabled = 'disabled' %}
+        {% else %}
+          {% set disabled = '' %}
+        {% endif %}
+        <a href="{{url_for('admin.end_day', farm_name=current_user.farm_name, house_name=crop.house_name, crop_no=crop.crop_no, day_no=day_status.day_no)}}" class="btn {{disabled}}">Sunset</a>
+      </div>
+    </section>
+
+    <section class="section" {{hidden}}>
+      <div class="container teal">
+        <h5>The End of a crop</h5>
+        <p>Have you concluded this crop? Proceed to archive it below</p>
+        {% if day_status %}
+          {% set disabled = 'disabled' %}
+        {% else %}
+          {% set disabled = '' %}
+        {% endif %}
+        <a href="{{url_for('admin.archive_crop', farm_name=current_user.farm_name, house_name=crop.house_name, crop_no=crop.crop_no)}}" class="btn {{disabled}}">Archive</a>
       </div>
     </section>
   {% endif %}

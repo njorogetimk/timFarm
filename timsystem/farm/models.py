@@ -186,6 +186,7 @@ class Crop(db.Model):
     current_date = db.Column(db.String)
     end_date = db.Column(db.String, nullable=True)
     status = db.Column(db.Boolean)
+    summary = db.Column(db.String)
     house = db.relationship('House', backref=db.backref(
         'crop', lazy='dynamic'
     ))
@@ -209,6 +210,12 @@ class Crop(db.Model):
         self.house.currentCrop = self.crop_no
         self.house_name = house_name
 
+    def summarize(self, date, summary):
+        self.current_date = date
+        self.end_date = date
+        self.status = False
+        self.summary = summary
+
     def __repr__(self):
         return '<Crop {}, House {}>'.format(self.crop_no, self.house_name_serial)
 
@@ -219,6 +226,9 @@ class Day(db.Model):
     date: date of the day
     crop_no: crop number of associated crop
     status: True (Current day. Not all data is updated)
+    actv: Activities tracker (True if updated)
+    condt: Condition tracker (True if updated)
+    harv: Harvest tracker (True if updated)
     """
     id = db.Column(db.Integer, primary_key=True)
     day_serial = db.Column(db.String, unique=True)
@@ -228,6 +238,9 @@ class Day(db.Model):
     crop = db.relationship('Crop', backref=db.backref('day', lazy='dynamic'))
     crop_no_serial = db.Column(db.String, db.ForeignKey('crop.crop_no_serial'))
     counter = db.Column(db.Integer)
+    actv = db.Column(db.Boolean, default=False)
+    condt = db.Column(db.Boolean, default=False)
+    harv = db.Column(db.Boolean, default=False)
 
     def __init__(self, farm_name, house_name, crop_no, day_no, date):
         self.date = date
@@ -242,14 +255,20 @@ class Day(db.Model):
         self.crop.current_date = date
 
     def day_check(self):
-        # Check whether the days data is filled
-        # If true change the status to False
-        self.counter += 1
-        if self.counter == 3:
+        if self.actv == True and self.condt == True and self.harv == True:
             self.status = False
 
+    def actv_tracker(self):
+        self.actv = True
+
+    def condt_tracker(self):
+        self.condt = True
+
+    def harv_tracker(self):
+        self.harv = True
+
     def __repr__(self):
-        return '<Day {}, CropNo {}>'.format(self.day_serial, self.crop_no)
+        return '<Day: {}, CropNo: {}>'.format(self.day_no, self.crop_no_serial)
 
 
 class Harvest(db.Model):
@@ -258,10 +277,12 @@ class Harvest(db.Model):
     record_time: time the record was updated in the system
     chronicler: the user who updated the record
     day_no: the day of the harvest
+    updated: Whether an update has been recorded
     """
     id = db.Column(db.Integer, primary_key=True)
     punnets = db.Column(db.String)
     record_time = db.Column(db.String)
+    updated = db.Column(db.Boolean)
     day = db.relationship('Day', backref=db.backref(
         'harvest', lazy='dynamic'
     ))
@@ -275,9 +296,11 @@ class Harvest(db.Model):
     chronicler = db.Column(db.String)
 
     def __init__(
-        self, farm_name, house_name, crop_no, day_no, punnets, chronicler
+        self, farm_name, house_name, crop_no, day_no, punnets, chronicler,
+        updated=True
     ):
         self.punnets = punnets
+        self.updated = updated
         self.day_serial = day_no+sep+crop_no+sep+house_name+sep+farm_name
         self.username_serial = chronicler+sep+farm_name
         self.day = Day.query.filter_by(day_serial=self.day_serial).first()
@@ -286,6 +309,7 @@ class Harvest(db.Model):
         ).first()
         time = dt.now()
         self.record_time = time.ctime()
+        self.day.harv_tracker()
         self.day.day_check()
         self.chronicler = chronicler
 
@@ -300,6 +324,7 @@ class Condition(db.Model):
     record_time: time the record was updated in the system
     chronicler: the user who updated the record
     day_no: the day of the harvest
+    updated: Whether an update has been recorded
     time: the time the record was taken
     """
     id = db.Column(db.Integer, primary_key=True)
@@ -307,6 +332,7 @@ class Condition(db.Model):
     humidity = db.Column(db.String)
     time = db.Column(db.String)
     record_time = db.Column(db.String)
+    updated = db.Column(db.Boolean)
     day = db.relationship('Day', backref=db.backref(
         'condition', lazy='dynamic'
     ))
@@ -321,11 +347,12 @@ class Condition(db.Model):
 
     def __init__(
         self, farm_name, house_name, crop_no, day_no, temperature, humidity,
-        time, chronicler
+        time, chronicler, updated=True
     ):
         self.temperature = temperature
         self.humidity = humidity
         self.time = time
+        self.updated = updated
         self.day_serial = day_no+sep+crop_no+sep+house_name+sep+farm_name
         self.username_serial = chronicler+sep+farm_name
         self.day = Day.query.filter_by(day_serial=self.day_serial).first()
@@ -334,6 +361,7 @@ class Condition(db.Model):
         ).first()
         time = dt.now()
         self.record_time = time.ctime()
+        self.day.condt_tracker()
         self.day.day_check()
         self.chronicler = chronicler
 
@@ -346,11 +374,13 @@ class Activities(db.Model):
     description: Short description of the day's activities
     record_time: time the record was updated in the system
     chronicler: the user who updated the record
+    updated: Whether an update has been recorded
     day_no: the day of the harvest
     """
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String, nullable=True)
     record_time = db.Column(db.String)
+    updated = db.Column(db.Boolean)
     day = db.relationship('Day', backref=db.backref(
         'activities', lazy='dynamic'
     ))
@@ -364,9 +394,11 @@ class Activities(db.Model):
     chronicler = db.Column(db.String)
 
     def __init__(
-        self, farm_name, house_name, crop_no, day_no, description, chronicler
+        self, farm_name, house_name, crop_no, day_no, description, chronicler,
+        updated=True
     ):
         self.description = description
+        self.updated = updated
         self.day_serial = day_no+sep+crop_no+sep+house_name+sep+farm_name
         self.username_serial = chronicler+sep+farm_name
         self.day = Day.query.filter_by(day_serial=self.day_serial).first()
@@ -375,6 +407,7 @@ class Activities(db.Model):
         ).first()
         time = dt.now()
         self.record_time = time.ctime()
+        self.day.actv_tracker()
         self.day.day_check()
         self.chronicler = chronicler
 

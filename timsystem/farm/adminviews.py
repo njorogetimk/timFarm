@@ -1,11 +1,13 @@
 from flask import Blueprint, render_template, redirect, url_for, request
 from flask import flash, g
 from flask_login import current_user
-from wtforms import Form, StringField, validators
+from wtforms import Form, StringField, TextAreaField, validators
 from wtforms.fields.html5 import EmailField
 from timsystem.farm.models import Farm, Users, House, Crop, Day
+from timsystem.farm.models import Activities, Harvest, Condition
 from timsystem.farm.email import send_email
 from timsystem.farm.token import gen_confirm_token
+from timsystem.farm.userviews import StartDay
 from timsystem.farm import daycheck as dayGiver
 from timsystem import db
 from functools import wraps
@@ -76,9 +78,30 @@ def disp_house(farm_name, house_name):
     # The crops should have an active or archived status
     crops = house.crop.all()
     active_crop = house.crop.filter_by(status=True).first()
+
+    # Change the house status
+    freeze = request.args.get('freeze')
+    activate = request.args.get('activate')
+    if freeze:
+        # Freeze the house
+        house.status = False
+        db.session.commit()
+        flash('The house is now frozen', 'success')
+        return redirect(url_for(
+            'admin.disp_house', farm_name=farm_name, house_name=house_name
+        ))
+    if activate:
+        # Activate the house
+        house.status = True
+        db.session.commit()
+        flash('The house has been activated', 'success')
+        return redirect(url_for(
+            'admin.disp_house', farm_name=farm_name, house_name=house_name
+        ))
+
     return render_template(
         'display/disp_house.html', crops=crops, active_crop=active_crop,
-        house_name=house_name
+        house=house
     )
 
 
@@ -140,6 +163,12 @@ def add_crop(farm_name, house_name):
         flash('The house %s is not registered' % house_name, 'danger')
         return redirect(url_for('admin.farm_admin', farm_name=farm_name))
 
+    # Get the current crop in the house
+    current_crop_no = house.currentCrop
+    current_crop = house.crop.filter_by(crop_no=current_crop_no).first()
+    date = dayGiver.ConvDate(current_crop.end_date)
+    min_date = date.result()  # For date picker min date
+
     if request.method == 'POST' and form.validate():
         # Get the data and update it
         crop_name = form.crop_name.data
@@ -164,12 +193,25 @@ def add_crop(farm_name, house_name):
             return redirect(url_for(
                 'admin.disp_house', farm_name=farm_name, house_name=house_name
             ))
-    return render_template('admin/add_crop.html', form=form)
+    return render_template('admin/add_crop.html', form=form, min_date=min_date)
 
 
-@admin.route('/<farm_name>/<house_name>/<crop_no>/add/day', methods=['POST'])
+class EndCrop(Form):
+    summary = TextAreaField("The crop summarizing comments", [
+        validators.DataRequired(),
+        validators.length(min=5, max=600)
+    ])
+    date = StringField("Pick the ending date", [
+        validators.DataRequired()
+    ])
+
+
+@admin.route(
+    '/<farm_name>/<house_name>/<crop_no>/archive', methods=['GET', 'POST']
+)
 @is_admin
-def add_day(farm_name, house_name, crop_no):
+def archive_crop(farm_name, house_name, crop_no):
+    form = EndCrop(request.form)
     if farm_name != current_user.farm_name:
         flash('Unauthorized!!', 'danger')
         return redirect(url_for('farm.signout'))
@@ -187,7 +229,48 @@ def add_day(farm_name, house_name, crop_no):
         return redirect(url_for(
             'admin.disp_house', farm_name=farm_name, house_name=house_name
         ))
-    date = request.form.get('date')
+
+    date = dayGiver.ConvDate(crop.current_date)
+    min_date = date.result()  # For date picker min date
+
+    if request.method == 'POST' and form.validate():
+        # End the crop
+        summary = form.summary.data
+        date = form.date.data
+
+        crop.summarize(date, summary)
+        db.session.commit()
+        return redirect(url_for(
+            'admin.disp_house', farm_name=current_user.farm_name,
+            house_name=crop.house_name
+        ))
+    return render_template(
+        'admin/archive_crop.html', crop=crop, form=form, min_date=min_date
+    )
+
+
+@admin.route('/<farm_name>/<house_name>/<crop_no>/add/day', methods=['POST'])
+@is_admin
+def add_day(farm_name, house_name, crop_no):
+    form = StartDay(request.form)
+    if farm_name != current_user.farm_name:
+        flash('Unauthorized!!', 'danger')
+        return redirect(url_for('farm.signout'))
+    farm = Farm.query.filter_by(farm_name=farm_name).first()
+    if not farm:
+        flash('Please register your farm %s' % farm_name, 'danger')
+        return redirect(url_for('farm.registerFarm'))
+    house = farm.house.filter_by(house_name=house_name).first()
+    if not house:
+        flash('The house %s is not registered' % house_name, 'danger')
+        return redirect(url_for('admin.farm_admin', farm_name=farm_name))
+    crop = house.crop.filter_by(crop_no=crop_no).first()
+    if not crop:
+        flash('The crop %s is not present in this house' % crop_no, 'danger')
+        return redirect(url_for(
+            'admin.disp_house', farm_name=farm_name, house_name=house_name
+        ))
+    date = form.date.data
     daycheck = dayGiver.Dates(crop.start_date, date)
     day_no = str(daycheck.day_no())
     get_day = crop.day.filter_by(day_no=day_no).first()
@@ -204,8 +287,78 @@ def add_day(farm_name, house_name, crop_no):
         flash('The day %s is present. Update its record' % day_no, 'success')
         return redirect(url_for(
             'user.disp_crop', farm_name=farm_name, house_name=house_name,
+            crop_no=crop_no, form=form
+        ))
+
+
+# End a day
+@admin.route('/<farm_name>/<house_name>/<crop_no>/end/day/<day_no>')
+@is_admin
+def end_day(farm_name, house_name, crop_no, day_no):
+    if farm_name != current_user.farm_name:
+        flash('Unauthorized!!', 'danger')
+        return redirect(url_for('farm.signout'))
+    farm = Farm.query.filter_by(farm_name=farm_name).first()
+    if not farm:
+        flash('Please register your farm %s' % farm_name, 'danger')
+        return redirect(url_for('farm.registerFarm'))
+    house = farm.house.filter_by(house_name=house_name).first()
+    if not house:
+        flash('The house %s is not registered' % house_name, 'danger')
+        return redirect(url_for('admin.farm_admin', farm_name=farm_name))
+    crop = house.crop.filter_by(crop_no=crop_no).first()
+    if not crop:
+        flash('The crop %s is not present in this house' % crop_no, 'danger')
+        return redirect(url_for(
+            'admin.disp_house', farm_name=farm_name, house_name=house_name
+        ))
+    day = crop.day.filter_by(day_no=day_no).first()
+    if not day:
+        flash('The day %s is not present in this crop' % day_no, 'danger')
+        return redirect(url_for(
+            'user.disp_crop', farm_name=farm_name, house_name=house_name,
             crop_no=crop_no
         ))
+
+    # End the day
+    actv = day.activities.filter_by(updated=True).first()
+    harv = day.harvest.filter_by(updated=True).first()
+    condt = day.condition.filter_by(updated=True).first()
+
+    if not actv:
+        # Update null fields
+        description = 'There were no activities'
+        null_actv = Activities(
+            farm_name, house_name, crop_no, day_no, description, current_user.username
+        )
+        db.session.add(null_actv)
+        db.session.commit()
+
+    if not harv:
+        # Update null fields
+        punnets = '0'
+        null_harv = Harvest(
+            farm_name, house_name, crop_no, day_no, punnets, current_user.username
+        )
+        db.session.add(null_harv)
+        db.session.commit()
+
+    if not condt:
+        # Update null fields
+        temperature = '0'
+        humidity = '0'
+        time = '00:00'
+        null_condt = Condition(
+            farm_name, house_name, crop_no, day_no, temperature, humidity,
+            time, current_user.username
+        )
+        db.session.add(null_condt)
+        db.session.commit()
+    flash('Day %s ended' % day_no, 'success')
+    return redirect(url_for(
+        'user.disp_crop', farm_name=farm_name, house_name=house_name,
+        crop_no=crop_no
+    ))
 
 
 # View Users
